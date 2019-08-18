@@ -199,6 +199,8 @@
 
 (use-package evil
   :defer .1
+  :bind
+  
   :init
   (setq evil-want-integration nil)
   (setq evil-want-keybinding nil)
@@ -207,9 +209,9 @@
   )
 
 (use-package evil-collection
-             :after evil
-             :config
-             (evil-collection-init))
+  :after evil
+  :config
+  (evil-collection-init))
 
 (use-package powerline-evil
   :after evil
@@ -220,15 +222,35 @@
   (add-hook 'emacs-startup-hook 'powerline-reset))
 
 (use-package evil-org
-             :after evil
-             :config
-             (add-hook 'org-mode-hook 'evil-org-mode)
-             (evil-org-set-key-theme '(navigation insert textobjects additional calendar)))
+  :after evil
+  :defer .1
+  :config
+  (add-hook 'org-mode-hook 'evil-org-mode)
+  (evil-org-set-key-theme '(navigation insert textobjects additional calendar)))
 
 ;;(use-package evil-org-agenda
 ;;             :after evil-org
 ;;             :config
 ;;             (evil-org-agenda-set-keys))
+
+(use-package neotree
+  :after evil
+  :defer .1
+  :config
+  (global-set-key [f8] 'neotree-toggle)
+  (setq neo-theme (if (display-graphic-p) 'icons 'arrow))
+  (add-hook 'neotree-mode-hook
+            (lambda ()
+              (define-key evil-normal-state-local-map (kbd "TAB") 'neotree-enter)
+              (define-key evil-normal-state-local-map (kbd "SPC") 'neotree-quick-look)
+              (define-key evil-normal-state-local-map (kbd "q") 'neotree-hide)
+              (define-key evil-normal-state-local-map (kbd "RET") 'neotree-enter)
+              (define-key evil-normal-state-local-map (kbd "g") 'neotree-refresh)
+              (define-key evil-normal-state-local-map (kbd "n") 'neotree-next-line)
+              (define-key evil-normal-state-local-map (kbd "p") 'neotree-previous-line)
+              (define-key evil-normal-state-local-map (kbd "A") 'neotree-stretch-toggle)
+              (define-key evil-normal-state-local-map (kbd "H") 'neotree-hidden-file-toggle)))
+  )
 
 (when (>= emacs-major-version 26)
   (pixel-scroll-mode))
@@ -259,6 +281,11 @@
   :config
   (setq midnight-period 7200)
   (midnight-mode 1))
+
+(use-package all-the-icons
+  :config
+  (when (not (member "all-the-icons" (font-family-list)))
+    (all-the-icons-install-fonts t)))
 
 (use-package helm
   :ensure t
