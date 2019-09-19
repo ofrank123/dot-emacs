@@ -400,7 +400,6 @@ I picked up this little gem in the org mailing list. A function that reformats t
         (insert document)
         (goto-char (point-min)))))
 #+end_src
-
 * Evil Mode
 Evil mode is an incredible package that emulates a vast amount of vim functionality within emacs.  It also supports custom keybinds and lot's of other customization.  It is the primary reason I am able to use emacs, and I can't understand how anybody uses emacs without it.
 I'm using =use-package= to load the =evil= package, and put it's config inside the corresponding sections for general configuration code (=:config=), and pre package =init= code (=:init=).
@@ -423,11 +422,20 @@ Set =evil-want-integration= and =evil-want-keybinding= as required by evil-colle
   (setq evil-want-integration nil)
   (setq evil-want-keybinding nil)
 #+end_src
-
+Set window movement keybindings
+#+begin_src emacs-lisp
+  (eval-after-load "evil"
+    '(progn
+       (define-key evil-normal-state-map (kbd "C-h") 'evil-window-left)
+       (define-key evil-normal-state-map (kbd "C-j") 'evil-window-down)
+       (define-key evil-normal-state-map (kbd "C-k") 'evil-window-up)
+       (define-key evil-normal-state-map (kbd "C-l") 'evil-window-right)))
+#+end_src
 Start evil mode
 #+begin_src emacs-lisp :tangle no :noweb-ref evil-mode-config
   (evil-mode)
 #+end_src
+
 ** =evil-collection= setup
 =evil-collection= sets up a large amount of functionality beyond the initial =evil= functionality
 #+begin_src emacs-lisp
@@ -467,8 +475,84 @@ Then we add =evil-org-agenda= to add keybindings for agenda
   ;;             :config
   ;;             (evil-org-agenda-set-keys))
 #+end_src
+* Coding
+** projectile
+I use projectile to manage... projects.  Crazy ain't it?
+#+begin_src emacs-lisp
+  (use-package projectile)
+#+end_src
 
-* Miscellaneous Packages
+** yasnippet
+Minimal yasnippet setup so I can use snippets (mainly in java, but the list will get bigger)
+#+begin_src emacs-lisp
+  (use-package yasnippet)
+#+end_src
+
+** lsp and Java
+Because I have to use java (ew), I'm going to keep it within emacs.  To do this I run an eclipse server and use lsp to get the functionality from it.
+#+begin_src emacs-lisp
+  (use-package meghanada
+    :init
+    (defun java-meghanada-mode-hook ()
+      (meghanada-mode)
+      (flycheck-mode))
+    (add-hook 'java-mode-hook 'java-meghanada-mode-hook))
+#+end_src
+
+*** Gradle
+I use gradle for building my java stuff, because fuck dealing with javac
+#+begin_src emacs-lisp
+  (use-package gradle-mode
+    :defer .1
+    :config
+    (add-hook 'java-mode-hook 'gradle-mode))
+#+end_src
+
+** Company
+Company-mode gives us code completion, and integrates with eclim
+#+begin_src emacs-lisp
+  (use-package company
+    :defer .1
+    :config
+    (add-hook 'java-mode-hook 'company-mode))
+#+end_src
+
+** dap
+#+begin_src emacs-lisp
+#+end_src
+
+* Keybindings
+For custom keybindings, I'm using general.el.  It makes a lot of the process very easy
+#+begin_src emacs-lisp
+  (use-package general
+    :defer .1
+    :config
+    (general-create-definer global-leader-def
+                            :prefix "SPC")
+
+    ;; global evil leader bindings
+    (global-leader-def
+     :states 'normal
+     :keymaps 'override
+     "b s" 'save-buffer
+     "b o" 'helm-find-files
+     "b k" 'kill-current-buffer)
+
+    ;; mode bindings
+    (general-create-definer mode-leader-def
+      :prefix "SPC m")
+
+    (mode-leader-def 'normal org-mode-map
+                     ;; Org mode map
+                     )
+
+    (mode-leader-def 'normal java-mode-map
+                     ;;"e r" 'eclim-java-refactor-rename-symbol-at-point
+                     ;;"e p" 'eclim-problems-open-current
+                     ))
+#+end_src
+
+* miscellaneous Packages
 ** Neotree
 I use neotree as an improved dired mode.  It plays nice with =all-the-icons= so that's nice.  I also manually reset a bunch of commands because evil-mode doesn't play so nice.
 #+begin_src emacs-lisp
@@ -554,6 +638,7 @@ The =uniquify= package makes it much easier to identify different open files wit
     (when (not (member "all-the-icons" (font-family-list)))
       (all-the-icons-install-fonts t)))
 #+end_src
+
 * Completion with Helm
 This is my helm config, it's mostly copied from [[https://github.com/daedreth/UncleDavesEmacs#user-content-ido-and-why-i-started-using-helm][Uncle Dave's Emacs config]]
 #+begin_src emacs-lisp

@@ -208,6 +208,13 @@
   (evil-mode)
   )
 
+(eval-after-load "evil"
+  '(progn
+     (define-key evil-normal-state-map (kbd "C-h") 'evil-window-left)
+     (define-key evil-normal-state-map (kbd "C-j") 'evil-window-down)
+     (define-key evil-normal-state-map (kbd "C-k") 'evil-window-up)
+     (define-key evil-normal-state-map (kbd "C-l") 'evil-window-right)))
+
 (use-package evil-collection
   :after evil
   :config
@@ -232,6 +239,56 @@
 ;;             :after evil-org
 ;;             :config
 ;;             (evil-org-agenda-set-keys))
+
+(use-package projectile)
+
+(use-package yasnippet)
+
+(use-package meghanada
+  :init
+  (defun java-meghanada-mode-hook ()
+    (meghanada-mode)
+    (flycheck-mode))
+  (add-hook 'java-mode-hook 'java-meghanada-mode-hook))
+
+(use-package gradle-mode
+  :defer .1
+  :config
+  (add-hook 'java-mode-hook 'gradle-mode))
+
+(use-package company
+  :defer .1
+  :config
+  (add-hook 'java-mode-hook 'company-mode))
+
+
+
+(use-package general
+  :defer .1
+  :config
+  (general-create-definer global-leader-def
+                          :prefix "SPC")
+
+  ;; global evil leader bindings
+  (global-leader-def
+   :states 'normal
+   :keymaps 'override
+   "b s" 'save-buffer
+   "b o" 'helm-find-files
+   "b k" 'kill-current-buffer)
+
+  ;; mode bindings
+  (general-create-definer mode-leader-def
+    :prefix "SPC m")
+
+  (mode-leader-def 'normal org-mode-map
+                   ;; Org mode map
+                   )
+
+  (mode-leader-def 'normal java-mode-map
+                   ;;"e r" 'eclim-java-refactor-rename-symbol-at-point
+                   ;;"e p" 'eclim-problems-open-current
+                   ))
 
 (use-package neotree
   :after evil
