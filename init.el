@@ -377,6 +377,7 @@
    "c t d" 'ojf/change-theme-dark
    ;; Magit stuff
    "g g" 'magit-status
+   "g i" 'magit-init
    )
 
   ;; mode bindings
