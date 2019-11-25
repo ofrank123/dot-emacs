@@ -212,14 +212,6 @@
   :config
   (evil-collection-init))
 
-(use-package powerline-evil
-  :after evil
-  :defer .1
-  :config
-  (powerline-evil-center-color-theme)
-  (setq powerline-default-seperator 'slant)
-  (add-hook 'emacs-startup-hook 'powerline-reset))
-
 (use-package evil-org
   :after evil
   :defer .1
@@ -250,6 +242,19 @@
   :init
   (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
 
+(use-package magit)
+
+(use-package git-gutter-fringe
+  :hook (after-init . global-git-gutter-mode)
+  :config
+  (setq-default fringes-outside-margins t)
+  (define-fringe-bitmap 'git-gutter-fr:added [224]
+    nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:modified [224]
+    nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240]
+    nil nil 'bottom))
+
 (use-package projectile
   :config
   (projectile-mode 1)
@@ -267,7 +272,11 @@
   :hook ('java-mode . 'lsp))
 
 (use-package lsp-ui
-  :hook ('java-mode . 'flycheck-mode))
+  :hook ('java-mode . 'flycheck-mode)
+  :config
+  (setq flycheck-indication-mode 'left-fringe)
+  (define-fringe-bitmap 'flycheck-fringe-bitmap-double-arrow
+    [16 48 112 240 112 48 16] nil nil 'center))
 
 (setq lsp-ui-doc-enable nil
       lsp-ui-sideline-enable nil
@@ -357,13 +366,18 @@
   (global-leader-def
    :states 'normal
    :keymaps 'override
+   ;; Buffer ops
    "b s" 'save-buffer
    "b o" 'helm-find-files
    "b k" 'kill-current-buffer
+   ;; Customization
    "c e e" 'ojf/open-init
    "c e r" 'ojf/reload-emacs
    "c t l" 'ojf/change-theme-light
-   "c t d" 'ojf/change-theme-dark)
+   "c t d" 'ojf/change-theme-dark
+   ;; Magit stuff
+   "g g" 'magit-status
+   )
 
   ;; mode bindings
   (general-create-definer mode-leader-def
@@ -409,6 +423,9 @@
 
 (use-package diminish
   :defer 1)
+
+(use-package doom-modeline
+  :hook (after-init . doom-modeline-mode))
 
 (use-package gruvbox-theme)
 (load-theme 'gruvbox-dark-medium)

@@ -43,7 +43,7 @@
  '(package-check-signature nil)
  '(package-selected-packages
    (quote
-    (plantuml-mode dap-java web-mode java-snippets rainbow-delimiters eclim all-the-icons evil powerline-evil helm diminish evil-org-agenda toc-org org-journal org-jira ox-jira ox-gfm htmlize smooth-scrolling paradox auto-compile use-package powerline org-bullets nord-theme magit gruvbox-theme general evil-org evil-collection)))
+    (git-gutter-fringe git-gutter-fring doom-modeline plantuml-mode dap-java web-mode java-snippets rainbow-delimiters eclim all-the-icons evil powerline-evil helm diminish evil-org-agenda toc-org org-journal org-jira ox-jira ox-gfm htmlize smooth-scrolling paradox auto-compile use-package powerline org-bullets nord-theme magit gruvbox-theme general evil-org evil-collection)))
  '(packages-archives (quote (("melpa" . "http://melpa.org/packages/"))) t)
  '(paradox-github-token t t)
  '(read-buffer-completion-ignore-case t)

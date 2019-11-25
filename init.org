@@ -444,17 +444,6 @@ Start evil mode
     (evil-collection-init))
 #+end_src
 
-** =powerline= setup for =evil=
-Setup powerline and make sure it is loaded after everything else, because otherwise the fonts don't work properly (don't know why)
-#+begin_src emacs-lisp
-  (use-package powerline-evil
-    :after evil
-    :defer .1
-    :config
-    (powerline-evil-center-color-theme)
-    (setq powerline-default-seperator 'slant)
-    (add-hook 'emacs-startup-hook 'powerline-reset))
-#+end_src
 
 ** =evil-org= setup
 Next, we setup =evil-org= which provides vim like keybindings with =org=, making working in it more similar to editing other buffers in evil.
@@ -503,6 +492,26 @@ prog-mode has all of the programming modes in it.  I'm using a hook to turn on l
     (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
 #+END_SRC
 
+** git
+*** Magit
+An incredible Git porcelain that allows basically all of Git's functionality to be used within emacs.
+#+BEGIN_SRC emacs-lisp
+  (use-package magit)
+#+END_SRC
+*** diff in gutter
+Provide a minimal gutter thing that displays uncommited changes.
+#+BEGIN_SRC emacs-lisp
+  (use-package git-gutter-fringe
+    :hook (after-init . global-git-gutter-mode)
+    :config
+    (setq-default fringes-outside-margins t)
+    (define-fringe-bitmap 'git-gutter-fr:added [224]
+      nil nil '(center repeated))
+    (define-fringe-bitmap 'git-gutter-fr:modified [224]
+      nil nil '(center repeated))
+    (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240]
+      nil nil 'bottom))
+#+END_SRC
 
 ** projectile
 Projectile is a tool for managing projects, and it integrates with lsp-mode.
@@ -523,21 +532,24 @@ Minimal yasnippet setup so I can use snippets (mainly in java, but the list will
 ** LSP and Java
 Because I have to use java (ew), I'm going to keep it within emacs.  I use LSP because it works with the dap-mode debugger and additionally projectile.  Also it's super easy to setup.
 #+begin_src emacs-lisp
-  (use-package lsp-mode
-    :init
-    (setq lsp-prefer-flymake nil)
-    :demand t)
+    (use-package lsp-mode
+      :init
+      (setq lsp-prefer-flymake nil)
+      :demand t)
 
-  (use-package lsp-java
-    :hook ('java-mode . 'lsp))
+    (use-package lsp-java
+      :hook ('java-mode . 'lsp))
 
-  (use-package lsp-ui
-    :hook ('java-mode . 'flycheck-mode))
+    (use-package lsp-ui
+      :hook ('java-mode . 'flycheck-mode)
+      :config
+      (setq flycheck-indication-mode 'left-fringe)
+      (define-fringe-bitmap 'flycheck-fringe-bitmap-double-arrow
+        [16 48 112 240 112 48 16] nil nil 'center))
 
-  (setq lsp-ui-doc-enable nil
-        lsp-ui-sideline-enable nil
-        lsp-ui-flycheck-enable t)
-
+    (setq lsp-ui-doc-enable nil
+          lsp-ui-sideline-enable nil
+          lsp-ui-flycheck-enable t)
 #+end_src
 
 *** dap-mode
@@ -641,38 +653,43 @@ Custom functions I use in the keybinds
 
 For custom keybindings, I'm using general.el.  It makes a lot of the process very easy
 #+begin_src emacs-lisp
-  (use-package general
-    :defer .1
-    :config
-    (general-create-definer global-leader-def
-                            :prefix "SPC")
+    (use-package general
+      :defer .1
+      :config
+      (general-create-definer global-leader-def
+                              :prefix "SPC")
 
-    ;; global evil leader bindings
-    (global-leader-def
-     :states 'normal
-     :keymaps 'override
-     "b s" 'save-buffer
-     "b o" 'helm-find-files
-     "b k" 'kill-current-buffer
-     "c e e" 'ojf/open-init
-     "c e r" 'ojf/reload-emacs
-     "c t l" 'ojf/change-theme-light
-     "c t d" 'ojf/change-theme-dark)
+      ;; global evil leader bindings
+      (global-leader-def
+       :states 'normal
+       :keymaps 'override
+       ;; Buffer ops
+       "b s" 'save-buffer
+       "b o" 'helm-find-files
+       "b k" 'kill-current-buffer
+       ;; Customization
+       "c e e" 'ojf/open-init
+       "c e r" 'ojf/reload-emacs
+       "c t l" 'ojf/change-theme-light
+       "c t d" 'ojf/change-theme-dark
+       ;; Magit stuff
+       "g g" 'magit-status
+       )
 
-    ;; mode bindings
-    (general-create-definer mode-leader-def
-      :prefix "SPC m")
+      ;; mode bindings
+      (general-create-definer mode-leader-def
+        :prefix "SPC m")
 
-    (mode-leader-def
-      :states 'normal
-      :keymaps 'java-mode-map
-      "d l" 'dap-ui-locals
-      "d r" 'dap-ui-repl
-      "d n" 'dap-next
-      "d b" 'dap-breakpoint-toggle
-      "d c" 'dap-continue
-      "d d" 'ojf/dap-debug-last
-      ))
+      (mode-leader-def
+        :states 'normal
+        :keymaps 'java-mode-map
+        "d l" 'dap-ui-locals
+        "d r" 'dap-ui-repl
+        "d n" 'dap-next
+        "d b" 'dap-breakpoint-toggle
+        "d c" 'dap-continue
+        "d d" 'ojf/dap-debug-last
+        ))
 #+end_src
 
 * Misc Packages
@@ -698,7 +715,9 @@ I use neotree as an improved dired mode.  It plays nice with =all-the-icons= so 
                 (define-key evil-normal-state-local-map (kbd "H") 'neotree-hidden-file-toggle)))
     )
 #+end_src
+
 ** PlantUML
+PlantUML is a super cool little language (more like a markup language), that turns plaintext into nicely formatted UML.  Now when your boss tells you to make a UML diagram you don't have to open draw.io!
 #+BEGIN_SRC emacs-lisp
   (use-package plantuml-mode
     :config
@@ -706,6 +725,7 @@ I use neotree as an improved dired mode.  It plays nice with =all-the-icons= so 
     (setq plantuml-default-exec-mode 'jar)
     (add-to-list 'auto-mode-alist '("\\.plantuml\\'" . plantuml-mode)))
 #+END_SRC
+
 * Appearance and theming
 Here we take care of all the visual, UX and desktop-management settings.
 
@@ -720,6 +740,12 @@ The =diminish= package makes it possible to remove clutter from the modeline. He
 #+begin_src emacs-lisp
   (use-package diminish
     :defer 1)
+#+end_src
+
+Setup powerline and make sure it is loaded after everything else, because otherwise the fonts don't work properly (don't know why)
+#+begin_src emacs-lisp
+  (use-package doom-modeline
+    :hook (after-init . doom-modeline-mode))
 #+end_src
 
 I really like gruvbox, but this could be any theme
