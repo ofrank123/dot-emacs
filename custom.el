@@ -3,10 +3,13 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(ansi-color-faces-vector
+   [default default default italic underline success warning error])
  '(backup-directory-alist (quote (("." . "~/.emacs.d/backups"))))
+ '(custom-enabled-themes (quote (gruvbox-dark-hard)))
  '(custom-safe-themes
    (quote
-    ("1436d643b98844555d56c59c74004eb158dc85fc55d2e7205f8d9b8c860e177f" default)))
+    ("585942bb24cab2d4b2f74977ac3ba6ddbd888e3776b9d2f993c5704aa8bb4739" "8f97d5ec8a774485296e366fdde6ff5589cf9e319a584b845b6f7fa788c9fa9a" "a22f40b63f9bc0a69ebc8ba4fbc6b452a4e3f84b80590ba0a92b4ff599e53ad0" "8e797edd9fa9afec181efbfeeebf96aeafbd11b69c4c85fa229bb5b9f7f7e66c" "2b9dc43b786e36f68a9fd4b36dd050509a0e32fe3b0a803310661edb7402b8b6" "b583823b9ee1573074e7cbfd63623fe844030d911e9279a7c8a5d16de7df0ed0" "1436d643b98844555d56c59c74004eb158dc85fc55d2e7205f8d9b8c860e177f" default)))
  '(eclim-eclipse-dirs
    (quote
     ("~/.eclipse/org.eclipse.platform_4.12.0_155965261_linux_gtk_x86_64")))
@@ -16,14 +19,14 @@
  '(initial-buffer-choice t)
  '(jiralib-url "https://jira.swisscom.com")
  '(load-prefer-newer t)
- '(org-directory "~/cs/org" t)
- '(org-hide-emphasis-markers t t)
+ '(org-directory "~/cs/org")
+ '(org-hide-emphasis-markers t)
  '(org-journal-dir "~/cs/logbook")
- '(org-log-done t t)
+ '(org-log-done t)
  '(org-reveal-note-key-char nil t)
  '(org-reveal-root "file:///Users/taazadi1/Dropbox/org/reveal.js" t)
- '(org-startup-indented t t)
- '(org-tags-column 0 t)
+ '(org-startup-indented t)
+ '(org-tags-column 0)
  '(org-todo-keyword-faces
    (quote
     (("TODO" . "red")
@@ -33,7 +36,7 @@
      ("DONE" . "green")
      ("[DONE]" . "green")
      ("CANCELED" . "blue")
-     ("[CANCELED]" . "blue"))) t)
+     ("[CANCELED]" . "blue"))))
  '(package-selected-packages
    (quote
     (eclim all-the-icons evil powerline-evil helm diminish evil-org-agenda toc-org org-journal org-jira ox-jira ox-gfm htmlize smooth-scrolling paradox auto-compile use-package powerline org-bullets nord-theme magit gruvbox-theme general evil-org evil-collection)))
@@ -42,6 +45,9 @@
  '(read-buffer-completion-ignore-case t)
  '(read-file-name-completion-ignore-case t)
  '(show-trailing-whitespace t)
+ '(uniquify-after-kill-buffer-p t)
+ '(uniquify-buffer-name-style (quote post-forward) nil (uniquify))
+ '(uniquify-strip-common-suffix t)
  '(use-package-always-defer t)
  '(use-package-always-ensure t)
  '(use-package-verbose nil))

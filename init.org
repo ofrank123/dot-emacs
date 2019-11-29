@@ -293,6 +293,13 @@ We add an entry to the font-lock table so that list markers are show with a midd
                              (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
 #+end_src
 
+Turn of line numbers in org mode because they look weird with proportional text
+#+begin_src emacs-lisp
+  (defun nolinum()
+    (linum-mode 0))
+  (add-hook 'org-mode-hook 'nolinum)
+#+end_src
+
 We use the =org-bullets= package to display the tiles with fancy unicode bullets instead of the text ones
 #+begin_src emacs-lisp
   (use-package org-bullets
@@ -400,6 +407,7 @@ I picked up this little gem in the org mailing list. A function that reformats t
         (insert document)
         (goto-char (point-min)))))
 #+end_src
+
 * Evil Mode
 Evil mode is an incredible package that emulates a vast amount of vim functionality within emacs.  It also supports custom keybinds and lot's of other customization.  It is the primary reason I am able to use emacs, and I can't understand how anybody uses emacs without it.
 I'm using =use-package= to load the =evil= package, and put it's config inside the corresponding sections for general configuration code (=:config=), and pre package =init= code (=:init=).
@@ -434,6 +442,7 @@ Set window movement keybindings
 Start evil mode
 #+begin_src emacs-lisp :tangle no :noweb-ref evil-mode-config
   (evil-mode)
+  (setq linum-relative-global-mode t)
 #+end_src
 
 ** =evil-collection= setup
@@ -475,6 +484,7 @@ Then we add =evil-org-agenda= to add keybindings for agenda
   ;;             :config
   ;;             (evil-org-agenda-set-keys))
 #+end_src
+
 * Coding
 ** projectile
 I use projectile to manage... projects.  Crazy ain't it?
@@ -488,8 +498,8 @@ Minimal yasnippet setup so I can use snippets (mainly in java, but the list will
   (use-package yasnippet)
 #+end_src
 
-** lsp and Java
-Because I have to use java (ew), I'm going to keep it within emacs.  To do this I run an eclipse server and use lsp to get the functionality from it.
+** Meghanada and Java
+Because I have to use java (ew), I'm going to keep it within emacs.  To do this I use =meghanada-mode= which is a very nice ide-lite sort of deal.  Thanks to the devs for making my first year CS classes easier.
 #+begin_src emacs-lisp
   (use-package meghanada
     :init
@@ -517,9 +527,28 @@ Company-mode gives us code completion, and integrates with eclim
     (add-hook 'java-mode-hook 'company-mode))
 #+end_src
 
-** dap
-#+begin_src emacs-lisp
-#+end_src
+** web-mode
+Yay web-mode!  I use this for all my web dev related stuff.  It works really well
+#+BEGIN_SRC emacs-lisp
+  (use-package web-mode
+    :defer .1
+    :mode (("\\.js\\'" . web-mode)
+           ("\\.jsx\\'" . web-mode)
+           ("\\.css\\'" . web-mode)
+           ("\\.scss\\'" . web-mode)
+           ("\\.less\\'" . web-mode)
+           ("\\.xml\\'" . web-mode)
+           ("\\.html\\'" . web-mode)
+           ("\\.ts\\'" . web-mode)))
+#+END_SRC
+
+** x86_64 Assembler (NASM)
+I use =NASM= because it's nicer than =GAS= (fight me).
+#+BEGIN_SRC emacs-lisp
+  (use-package nasm-mode
+    :mode "\\.asm\\'"
+    )
+#+END_SRC
 
 * Keybindings
 For custom keybindings, I'm using general.el.  It makes a lot of the process very easy
@@ -602,7 +631,12 @@ I really like gruvbox, but this could be any theme
 Set the default font across emacs.
 #+begin_src emacs-lisp
   (add-to-list 'default-frame-alist
-               '(font . "DejaVuSansMono Nerd Font:style=Book"))
+               '(font . "DejaVuSansMono Nerd Font-18:style=Book"))
+#+end_src
+
+Turn on line numbers
+#+begin_src emacs-lisp
+  (global-linum-mode 1)
 #+end_src
 
 Disable the Emacs menubar, toolbar, and scrollbar, because they're ugly

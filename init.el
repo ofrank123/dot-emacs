@@ -179,6 +179,10 @@
   :custom
   (org-journal-dir "~/cs/logbook"))
 
+(defun nolinum()
+  (linum-mode 0))
+(add-hook 'org-mode-hook 'nolinum)
+
 (use-package org-bullets
   :after org
   :hook
@@ -206,6 +210,7 @@
   (setq evil-want-keybinding nil)
   :config
   (evil-mode)
+  (setq linum-relative-global-mode t)
   )
 
 (eval-after-load "evil"
@@ -261,7 +266,20 @@
   :config
   (add-hook 'java-mode-hook 'company-mode))
 
+(use-package web-mode
+  :defer .1
+  :mode (("\\.js\\'" . web-mode)
+         ("\\.jsx\\'" . web-mode)
+         ("\\.css\\'" . web-mode)
+         ("\\.scss\\'" . web-mode)
+         ("\\.less\\'" . web-mode)
+         ("\\.xml\\'" . web-mode)
+         ("\\.html\\'" . web-mode)
+         ("\\.ts\\'" . web-mode)))
 
+(use-package nasm-mode
+  :mode "\\.asm\\'"
+  )
 
 (use-package general
   :defer .1
@@ -319,7 +337,9 @@
 (load-theme 'gruvbox)
 
 (add-to-list 'default-frame-alist
-             '(font . "DejaVuSansMono Nerd Font:style=Book"))
+             '(font . "DejaVuSansMono Nerd Font-18:style=Book"))
+
+(global-linum-mode 1)
 
 (menu-bar-mode -1)
 (toggle-scroll-bar -1)
