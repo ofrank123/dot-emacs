@@ -42,7 +42,7 @@ Next, we wrap the whole init file in a block that sets =file-name-handler-alist=
 
 Optionally enable =debug-on-error= - do this when I don't know what the heck is going on with my config
 #+begin_src emacs-lisp
-  (setq debug-on-error t)
+  (setq debug-on-error nil)
 #+end_src
 
 Set =gc-cons-threshold= to its maximum value, to prevent any garbage collection from happening during load time.  We are also going to reset this during [[#Epilogue][Epilogue]].
@@ -128,15 +128,11 @@ Set the load path to the directories from where I sometimes load things outside 
 - Show line numbers, you could use linum-mode, but it causes big big performance issues on large files.  Emacs 26 now has display-line-numbers-mode, which has no perceivable performance impact, even on very large files.
 #+begin_src emacs-lisp
   (when (>= emacs-major-version 26)
-    (use-package display-line-numbers
-                 :defer t ;;Change to nil to stop line highlighting
-                 :ensure nil
-                 :config
-                 (global-display-line-numbers-mode)))
+    (use-package display-line-numbers))
 #+end_src
-- Highlight trailing whitespace, so it's easily visible
+- Don't highlight trailing whitespace, it hurts my eyes (also saving files gets rid of it anyways)
 #+begin_src emacs-lisp
-  (customize-set-variable 'show-trailing-whitespace t)
+  (customize-set-variable 'show-trailing-whitespace nil)
 #+end_src
 - Highlight matching parenthesis
 #+begin_src emacs-lisp
@@ -182,7 +178,8 @@ I use =use-package= to load the =org= package, and put it's configuration inside
                :hook
                <<org-mode-hooks>>
                :config
-               <<org-mode-config>>)
+               <<org-mode-config>>
+               )
 #+end_src
 
 ** General =org= Configuration
@@ -256,18 +253,6 @@ One of the biggest strengths of org-mode is the ability to export a document int
                :after org)
 #+end_src
 
-- [[https://github.com/stig/ox-jira.el][Jira markup]]. I also load =org-jira=, which provides a full interface to Jira through org-mode.
-#+begin_src emacs-lisp
-  (use-package ox-jira
-        :defer 3
-        :after org)
-  (use-package org-jira
-        :defer 3
-        :after org
-        :custom
-        (jiralib-url "https://jira.swisscom.com"))
-#+end_src
-
 ** Keeping a Journal
 org-journal provides a means with which to keep a journal with org.  We'll see how it works out...
 
@@ -309,27 +294,35 @@ We use the =org-bullets= package to display the tiles with fancy unicode bullets
 #+end_src
 
 We choose a nice font for the document title and the section headings,  The first one found in the system from the list below is used, and the same font is used for different levels, in varying sizes.
-#+begin_src emacs-lisp :tangle no :noweb-ref org-mode-config
-  (let* ((variable-tuple
-          (cond ((x-list-fonts   "Source Sans Pro") '(:font   "Source Sans Pro"))
-                ((x-list-fonts   "Lucida Grande")   '(:font   "Lucida Grande"))
-                ((x-list-fonts   "Verdana")         '(:font   "Verdana"))
-                ((x-family-fonts "Sans Serif")      '(:family "Sans Serif"))
-                (nil (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro."))))
-         (base-font-color (face-foreground 'default nil 'default))
-         (headline       `(:inherit default :weight bold :foreground ,base-font-color)))
+#+BEGIN_SRC emacs-lisp
+  (defun ojf/set-org-fonts ()
+      (let* ((variable-tuple
+              (cond ((x-list-fonts   "Source Sans Pro") '(:font   "Source Sans Pro"))
+                    ((x-list-fonts   "Lucida Grande")   '(:font   "Lucida Grande"))
+                    ((x-list-fonts   "Verdana")         '(:font   "Verdana"))
+                    ((x-family-fonts "Sans Serif")      '(:family "Sans Serif"))
+                    (nil (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro."))))
+             (base-font-color (face-foreground 'default nil 'default))
+             (headline       `(:inherit default :weight bold :foreground ,base-font-color)))
 
-    (custom-theme-set-faces
-     'user
-     `(org-level-8        ((t (,@headline ,@variable-tuple))))
-     `(org-level-7        ((t (,@headline ,@variable-tuple))))
-     `(org-level-6        ((t (,@headline ,@variable-tuple))))
-     `(org-level-5        ((t (,@headline ,@variable-tuple))))
-     `(org-level-4        ((t (,@headline ,@variable-tuple :height 1.1))))
-     `(org-level-3        ((t (,@headline ,@variable-tuple :height 1.25))))
-     `(org-level-2        ((t (,@headline ,@variable-tuple :height 1.5))))
-     `(org-level-1        ((t (,@headline ,@variable-tuple :height 1.75))))
-     `(org-document-title ((t (,@headline ,@variable-tuple :height 2.0 :underline nil)))))))
+        (custom-theme-set-faces
+         'user
+         `(org-level-8        ((t (,@headline ,@variable-tuple))))
+         `(org-level-7        ((t (,@headline ,@variable-tuple))))
+         `(org-level-6        ((t (,@headline ,@variable-tuple))))
+         `(org-level-5        ((t (,@headline ,@variable-tuple))))
+         `(org-level-4        ((t (,@headline ,@variable-tuple :height 1.1))))
+         `(org-level-3        ((t (,@headline ,@variable-tuple :height 1.25))))
+         `(org-level-2        ((t (,@headline ,@variable-tuple :height 1.5))))
+         `(org-level-1        ((t (,@headline ,@variable-tuple :height 1.75))))
+         `(org-document-title ((t (,@headline ,@variable-tuple :height 2.0 :underline nil)))))))
+
+
+#+END_SRC
+
+Use that function in the org config
+#+begin_src emacs-lisp :tangle no :noweb-ref org-mode-config
+    (ojf/set-org-fonts)
 #+end_src
 
 I use proportional fonts in org-mode for the text, while keeping fixed-width fonts for blocks, so that source code, tables, etc. are shown correctly. These settings include:
@@ -399,7 +392,7 @@ Note that this breaks HTML export by default, as the links generated by =toc-org
 I picked up this little gem in the org mailing list. A function that reformats the current buffer by regenerating the text from its internal parsed representation. Quite amazing.
 
 #+begin_src emacs-lisp
-  (defun of/org-reformat-buffer ()
+  (defun ojf/org-reformat-buffer ()
     (interactive)
     (when (y-or-n-p "Really format current buffer? ")
       (let ((document (org-element-interpret-data (org-element-parse-buffer))))
@@ -439,6 +432,11 @@ Set window movement keybindings
        (define-key evil-normal-state-map (kbd "C-k") 'evil-window-up)
        (define-key evil-normal-state-map (kbd "C-l") 'evil-window-right)))
 #+end_src
+
+Add code folding.  By default =za= toggles visibility with evil.
+#+BEGIN_SRC emacs-lisp :tangle no :noweb-ref evil-mode-init
+#+END_SRC
+
 Start evil mode
 #+begin_src emacs-lisp :tangle no :noweb-ref evil-mode-config
   (evil-mode)
@@ -454,17 +452,6 @@ Start evil mode
     (evil-collection-init))
 #+end_src
 
-** =powerline= setup for =evil=
-Setup powerline and make sure it is loaded after everything else, because otherwise the fonts don't work properly (don't know why)
-#+begin_src emacs-lisp
-  (use-package powerline-evil
-    :after evil
-    :defer .1
-    :config
-    (powerline-evil-center-color-theme)
-    (setq powerline-default-seperator 'slant)
-    (add-hook 'emacs-startup-hook 'powerline-reset))
-#+end_src
 
 ** =evil-org= setup
 Next, we setup =evil-org= which provides vim like keybindings with =org=, making working in it more similar to editing other buffers in evil.
@@ -477,70 +464,175 @@ Next, we setup =evil-org= which provides vim like keybindings with =org=, making
     (evil-org-set-key-theme '(navigation insert textobjects additional calendar)))
 #+end_src
 
-Then we add =evil-org-agenda= to add keybindings for agenda
-#+begin_src emacs-lisp
-  ;;(use-package evil-org-agenda
-  ;;             :after evil-org
-  ;;             :config
-  ;;             (evil-org-agenda-set-keys))
-#+end_src
+* Shell
+I use eshell cuz it's good.
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'eshell-mode-hook
+            (lambda ()
+              (remove-hook 'eshell-output-filter-functions
+                           'eshell-postoutput-scroll-to-bottom)))
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+  (defun eshell-clear-buffer ()
+    "Clear terminal"
+    (interactive)
+    (let ((inhibit-read-only t))
+      (erase-buffer)
+      (eshell-send-input)))
+
+  (add-hook 'eshell-mode-hook
+        '(lambda()
+            (local-set-key (kbd "SPC-b-c") 'eshell-clear-buffer)))
+#+END_SRC
 
 * Coding
+** prog-mode
+prog-mode has all of the programming modes in it.  I'm using a hook to turn on line numbers in them.
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'prog-mode-hook #'display-line-numbers-mode)
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+  (use-package flycheck
+    :hook (prog-mode . flycheck-mode))
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+  (use-package company
+    :diminish company-mode
+    :hook ('prog-mode . 'company-mode)
+    :config
+    (setq company-dabbrev-downcase 0)
+    (setq company-idle-delay 0.2)
+    (setq company-minimum-prefix-length 2))
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+  (use-package rainbow-delimiters
+    :commands rainbow-delimeters-mode
+    :init
+    (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
+#+END_SRC
+
+** git
+*** Magit
+An incredible Git porcelain that allows basically all of Git's functionality to be used within emacs.
+#+BEGIN_SRC emacs-lisp
+  (use-package magit)
+#+END_SRC
+
+*** diff in gutter
+Provide a minimal gutter thing that displays uncommited changes.
+#+BEGIN_SRC emacs-lisp
+  (use-package git-gutter-fringe
+    :hook (after-init . global-git-gutter-mode)
+    :config
+    (setq-default fringes-outside-margins t)
+    (define-fringe-bitmap 'git-gutter-fr:added [224]
+      nil nil '(center repeated))
+    (define-fringe-bitmap 'git-gutter-fr:modified [224]
+      nil nil '(center repeated))
+    (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240]
+      nil nil 'bottom))
+#+END_SRC
+
 ** projectile
-I use projectile to manage... projects.  Crazy ain't it?
-#+begin_src emacs-lisp
-  (use-package projectile)
-#+end_src
+Projectile is a tool for managing projects, and it integrates with lsp-mode.
+#+BEGIN_SRC emacs-lisp
+  (use-package projectile
+    :config
+    (projectile-mode 1)
+    :hook (java-mode . projectile-mode))
+#+END_SRC
 
 ** yasnippet
 Minimal yasnippet setup so I can use snippets (mainly in java, but the list will get bigger)
 #+begin_src emacs-lisp
-  (use-package yasnippet)
+  (use-package yasnippet
+    :diminish yas-minor-mode)
 #+end_src
 
-** Meghanada and Java
-Because I have to use java (ew), I'm going to keep it within emacs.  To do this I use =meghanada-mode= which is a very nice ide-lite sort of deal.  Thanks to the devs for making my first year CS classes easier.
+** Rust
+#+BEGIN_SRC emacs-lisp
+  (use-package toml-mode)
+
+  (use-package rust-mode
+    :defer .1
+    :hook ('rust-mode . 'lsp))
+
+  (use-package lsp-rust
+    :ensure f
+    :after lsp-mode)
+
+  (use-package cargo
+    :hook ('rust-mode . 'cargo-minor-mode))
+
+  (use-package flycheck-rust
+    :config (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
+#+END_SRC
+
+** LSP and Java
+Because I have to use java (ew), I'm going to keep it within emacs.  I use LSP because it works with the dap-mode debugger and additionally projectile.  Also it's super easy to setup.
 #+begin_src emacs-lisp
-  (use-package meghanada
+  (use-package lsp-mode
     :init
-    (defun java-meghanada-mode-hook ()
-      (meghanada-mode)
-      (flycheck-mode))
-    (add-hook 'java-mode-hook 'java-meghanada-mode-hook))
+    (setq lsp-prefer-flymake nil)
+    :config (require 'lsp-clients)
+    :demand t)
+
+  (use-package lsp-java
+    :defer .1
+    :hook ('java-mode . 'lsp))
+
+  (use-package lsp-ui
+    :config
+    (setq flycheck-indication-mode 'left-fringe)
+    (define-fringe-bitmap 'flycheck-fringe-bitmap-double-arrow
+      [16 48 112 240 112 48 16] nil nil 'center))
+
+  (use-package company-lsp
+    :config
+    (push 'company-lsp company-backends))
+
+  (setq lsp-ui-doc-enable nil
+        lsp-ui-sideline-enable nil
+        lsp-ui-flycheck-enable t)
 #+end_src
+
+*** dap-mode
+Use dap-mode with lsp.  dap provides a debugger that lets me do breakpoints and other IDE like stuff.
+#+BEGIN_SRC emacs-lisp
+  (use-package dap-mode
+    :diminish
+    :defer .1
+    :after (lsp-mode)
+    :config
+    (dap-mode t)
+    (dap-ui-mode t))
+#+END_SRC
+
+Get the dap-java package for dap-mode
+#+BEGIN_SRC emacs-lisp
+  (use-package dap-java
+    :defer .1
+    :after (lsp-java)
+    :ensure nil)
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+  (setq dap-java-java-command "gnome-terminal -- java")
+#+END_SRC
 
 *** Gradle
 I use gradle for building my java stuff, because fuck dealing with javac
 #+begin_src emacs-lisp
   (use-package gradle-mode
     :defer .1
+    :diminish gradle-mode
     :config
     (add-hook 'java-mode-hook 'gradle-mode))
 #+end_src
-
-** Company
-Company-mode gives us code completion, and integrates with eclim
-#+begin_src emacs-lisp
-  (use-package company
-    :defer .1
-    :config
-    (add-hook 'java-mode-hook 'company-mode))
-#+end_src
-
-** web-mode
-Yay web-mode!  I use this for all my web dev related stuff.  It works really well
-#+BEGIN_SRC emacs-lisp
-  (use-package web-mode
-    :defer .1
-    :mode (("\\.js\\'" . web-mode)
-           ("\\.jsx\\'" . web-mode)
-           ("\\.css\\'" . web-mode)
-           ("\\.scss\\'" . web-mode)
-           ("\\.less\\'" . web-mode)
-           ("\\.xml\\'" . web-mode)
-           ("\\.html\\'" . web-mode)
-           ("\\.ts\\'" . web-mode)))
-#+END_SRC
 
 ** x86_64 Assembler (NASM)
 I use =NASM= because it's nicer than =GAS= (fight me).
@@ -550,7 +642,54 @@ I use =NASM= because it's nicer than =GAS= (fight me).
     )
 #+END_SRC
 
+** web-mode
+#+BEGIN_SRC emacs-lisp
+  (use-package web-mode
+    :config
+    (add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
+    (add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
+    (add-to-list 'auto-mode-alist '("\\.[agj]sp\\'" . web-mode))
+    (add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
+    (add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
+    (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
+    (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
+    (add-to-list 'auto-mode-alist '("\\.js\\'" . web-mode)))
+#+END_SRC
+
 * Keybindings
+Custom functions I use in the keybinds
+#+BEGIN_SRC emacs-lisp
+  (defun ojf/open-init ()
+    (interactive)
+    (find-file "~/.emacs.d/init.org"))
+
+  (defun ojf/change-theme-light ()
+    (interactive)
+    (load-theme 'gruvbox-light-soft)
+    (ojf/set-org-fonts)
+    (powerline-reset))
+
+  (defun ojf/change-theme-dark ()
+    (interactive)
+    (load-theme 'gruvbox-dark-medium)
+    (ojf/set-org-fonts)
+    (powerline-reset))
+
+  (defun ojf/reload-emacs ()
+    (interactive)
+    (org-babel-tangle "~/.emacs.d/init.org")
+    (load-file "~/.emacs.d/init.el"))
+
+  (defun ojf/dap-debug-last ()
+    (interactive)
+    (dap-debug-last)
+    (let ((win-curr (selected-window))
+          (win-other (next-window)))
+      (select-window win-other)
+      (delete-window)
+      (select-window win-curr)))
+#+END_SRC
+
 For custom keybindings, I'm using general.el.  It makes a lot of the process very easy
 #+begin_src emacs-lisp
   (use-package general
@@ -563,25 +702,37 @@ For custom keybindings, I'm using general.el.  It makes a lot of the process ver
     (global-leader-def
      :states 'normal
      :keymaps 'override
+     ;; Buffer ops
      "b s" 'save-buffer
      "b o" 'helm-find-files
-     "b k" 'kill-current-buffer)
+     "b k" 'kill-current-buffer
+     ;; Customization
+     "c e e" 'ojf/open-init
+     "c e r" 'ojf/reload-emacs
+     "c t l" 'ojf/change-theme-light
+     "c t d" 'ojf/change-theme-dark
+     ;; Magit stuff
+     "g g" 'magit-status
+     "g i" 'magit-init
+     )
 
     ;; mode bindings
     (general-create-definer mode-leader-def
       :prefix "SPC m")
 
-    (mode-leader-def 'normal org-mode-map
-                     ;; Org mode map
-                     )
-
-    (mode-leader-def 'normal java-mode-map
-                     ;;"e r" 'eclim-java-refactor-rename-symbol-at-point
-                     ;;"e p" 'eclim-problems-open-current
-                     ))
+    (mode-leader-def
+      :states 'normal
+      :keymaps 'java-mode-map
+      "d l" 'dap-ui-locals
+      "d r" 'dap-ui-repl
+      "d n" 'dap-next
+      "d b" 'dap-breakpoint-toggle
+      "d c" 'dap-continue
+      "d d" 'ojf/dap-debug-last
+      ))
 #+end_src
 
-* miscellaneous Packages
+* Misc Packages
 ** Neotree
 I use neotree as an improved dired mode.  It plays nice with =all-the-icons= so that's nice.  I also manually reset a bunch of commands because evil-mode doesn't play so nice.
 #+begin_src emacs-lisp
@@ -605,16 +756,25 @@ I use neotree as an improved dired mode.  It plays nice with =all-the-icons= so 
     )
 #+end_src
 
+** PlantUML
+PlantUML is a super cool little language (more like a markup language), that turns plaintext into nicely formatted UML.  Now when your boss tells you to make a UML diagram you don't have to open draw.io!
+#+BEGIN_SRC emacs-lisp
+  (use-package plantuml-mode
+    :config
+    (setq plantuml-jar-path "~/.config/plantuml/plantuml.jar")
+    (setq plantuml-default-exec-mode 'jar)
+    (add-to-list 'auto-mode-alist '("\\.plantuml\\'" . plantuml-mode)))
+#+END_SRC
+
 * Appearance and theming
 Here we take care of all the visual, UX and desktop-management settings.
 
 You'll notice that many of the packages in this section have =:defer nil=. This is because some of these package are never called explicitly because they operate in the background, but I want them loaded when Emacs starts so they can perform their necessary customization.
 
-Emacs 26 (which I use) introduces pixel-level scrolling. Yay!
-#+begin_src emacs-lisp
-  (when (>= emacs-major-version 26)
-    (pixel-scroll-mode))
-#+end_src
+Electric pair mode for auto completes parens
+#+BEGIN_SRC emacs-lisp
+  (electric-pair-mode 1)
+#+END_SRC
 
 The =diminish= package makes it possible to remove clutter from the modeline. Here we just load it, it gets enabled for individual packages in their corresponding declarations.
 #+begin_src emacs-lisp
@@ -622,21 +782,22 @@ The =diminish= package makes it possible to remove clutter from the modeline. He
     :defer 1)
 #+end_src
 
+Setup powerline and make sure it is loaded after everything else, because otherwise the fonts don't work properly (don't know why)
+#+begin_src emacs-lisp
+  (use-package doom-modeline
+    :hook (after-init . doom-modeline-mode))
+#+end_src
+
 I really like gruvbox, but this could be any theme
 #+begin_src emacs-lisp
   (use-package gruvbox-theme)
-  (load-theme 'gruvbox)
+  (load-theme 'gruvbox-dark-medium)
 #+end_src
 
 Set the default font across emacs.
 #+begin_src emacs-lisp
   (add-to-list 'default-frame-alist
                '(font . "DejaVuSansMono Nerd Font-18:style=Book"))
-#+end_src
-
-Turn on line numbers
-#+begin_src emacs-lisp
-  (global-linum-mode 1)
 #+end_src
 
 Disable the Emacs menubar, toolbar, and scrollbar, because they're ugly
@@ -678,6 +839,7 @@ This is my helm config, it's mostly copied from [[https://github.com/daedreth/Un
 #+begin_src emacs-lisp
   (use-package helm
     :ensure t
+    :diminish helm-mode
     :bind
     ("C-x C-f" . 'helm-find-files)
     ("C-x C-b" . 'helm-buffers-list)

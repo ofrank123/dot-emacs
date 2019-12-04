@@ -13,7 +13,7 @@
 
 (let ((file-name-handler-alist nil))
 
-(setq debug-on-error t)
+(setq debug-on-error nil)
 
 (setq gc-cons-threshold most-positive-fixnum)
 
@@ -56,13 +56,9 @@
 (customize-set-variable 'read-buffer-completion-ignore-case t)
 
 (when (>= emacs-major-version 26)
-  (use-package display-line-numbers
-               :defer t ;;Change to nil to stop line highlighting
-               :ensure nil
-               :config
-               (global-display-line-numbers-mode)))
+  (use-package display-line-numbers))
 
-(customize-set-variable 'show-trailing-whitespace t)
+(customize-set-variable 'show-trailing-whitespace nil)
 
 (show-paren-mode)
 
@@ -110,28 +106,10 @@
              (font-lock-add-keywords 'org-mode
                                      '(("^ *\\([-]\\) "
                                         (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
-             (let* ((variable-tuple
-                     (cond ((x-list-fonts   "Source Sans Pro") '(:font   "Source Sans Pro"))
-                           ((x-list-fonts   "Lucida Grande")   '(:font   "Lucida Grande"))
-                           ((x-list-fonts   "Verdana")         '(:font   "Verdana"))
-                           ((x-family-fonts "Sans Serif")      '(:family "Sans Serif"))
-                           (nil (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro."))))
-                    (base-font-color (face-foreground 'default nil 'default))
-                    (headline       `(:inherit default :weight bold :foreground ,base-font-color)))
-             
-               (custom-theme-set-faces
-                'user
-                `(org-level-8        ((t (,@headline ,@variable-tuple))))
-                `(org-level-7        ((t (,@headline ,@variable-tuple))))
-                `(org-level-6        ((t (,@headline ,@variable-tuple))))
-                `(org-level-5        ((t (,@headline ,@variable-tuple))))
-                `(org-level-4        ((t (,@headline ,@variable-tuple :height 1.1))))
-                `(org-level-3        ((t (,@headline ,@variable-tuple :height 1.25))))
-                `(org-level-2        ((t (,@headline ,@variable-tuple :height 1.5))))
-                `(org-level-1        ((t (,@headline ,@variable-tuple :height 1.75))))
-                `(org-document-title ((t (,@headline ,@variable-tuple :height 2.0 :underline nil)))))))
+             (ojf/set-org-fonts)
              ;; (eval-after-load 'face-remap '(diminish 'buffer-face-mode))
-             ;; (eval-after-load 'simple '(diminish 'visual-line-mode)))
+             ;; (eval-after-load 'simple '(diminish 'visual-line-mode))
+             )
 
 (use-package org-indent
                :ensure nil
@@ -165,15 +143,6 @@
              :defer 3
              :after org)
 
-(use-package ox-jira
-      :defer 3
-      :after org)
-(use-package org-jira
-      :defer 3
-      :after org
-      :custom
-      (jiralib-url "https://jira.swisscom.com"))
-
 (use-package org-journal
   :after org
   :custom
@@ -188,12 +157,34 @@
   :hook
   (org-mode . (lambda () (org-bullets-mode 1))))
 
+(defun ojf/set-org-fonts ()
+    (let* ((variable-tuple
+            (cond ((x-list-fonts   "Source Sans Pro") '(:font   "Source Sans Pro"))
+                  ((x-list-fonts   "Lucida Grande")   '(:font   "Lucida Grande"))
+                  ((x-list-fonts   "Verdana")         '(:font   "Verdana"))
+                  ((x-family-fonts "Sans Serif")      '(:family "Sans Serif"))
+                  (nil (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro."))))
+           (base-font-color (face-foreground 'default nil 'default))
+           (headline       `(:inherit default :weight bold :foreground ,base-font-color)))
+
+      (custom-theme-set-faces
+       'user
+       `(org-level-8        ((t (,@headline ,@variable-tuple))))
+       `(org-level-7        ((t (,@headline ,@variable-tuple))))
+       `(org-level-6        ((t (,@headline ,@variable-tuple))))
+       `(org-level-5        ((t (,@headline ,@variable-tuple))))
+       `(org-level-4        ((t (,@headline ,@variable-tuple :height 1.1))))
+       `(org-level-3        ((t (,@headline ,@variable-tuple :height 1.25))))
+       `(org-level-2        ((t (,@headline ,@variable-tuple :height 1.5))))
+       `(org-level-1        ((t (,@headline ,@variable-tuple :height 1.75))))
+       `(org-document-title ((t (,@headline ,@variable-tuple :height 2.0 :underline nil)))))))
+
 (use-package toc-org
   :after org
   :hook
   (org-mode . toc-org-enable))
 
-(defun of/org-reformat-buffer ()
+(defun ojf/org-reformat-buffer ()
   (interactive)
   (when (y-or-n-p "Really format current buffer? ")
     (let ((document (org-element-interpret-data (org-element-parse-buffer))))
@@ -208,6 +199,7 @@
   :init
   (setq evil-want-integration nil)
   (setq evil-want-keybinding nil)
+  
   :config
   (evil-mode)
   (setq linum-relative-global-mode t)
@@ -225,14 +217,6 @@
   :config
   (evil-collection-init))
 
-(use-package powerline-evil
-  :after evil
-  :defer .1
-  :config
-  (powerline-evil-center-color-theme)
-  (setq powerline-default-seperator 'slant)
-  (add-hook 'emacs-startup-hook 'powerline-reset))
-
 (use-package evil-org
   :after evil
   :defer .1
@@ -240,46 +224,166 @@
   (add-hook 'org-mode-hook 'evil-org-mode)
   (evil-org-set-key-theme '(navigation insert textobjects additional calendar)))
 
-;;(use-package evil-org-agenda
-;;             :after evil-org
-;;             :config
-;;             (evil-org-agenda-set-keys))
+(add-hook 'eshell-mode-hook
+          (lambda ()
+            (remove-hook 'eshell-output-filter-functions
+                         'eshell-postoutput-scroll-to-bottom)))
 
-(use-package projectile)
+(defun eshell-clear-buffer ()
+  "Clear terminal"
+  (interactive)
+  (let ((inhibit-read-only t))
+    (erase-buffer)
+    (eshell-send-input)))
 
-(use-package yasnippet)
+(add-hook 'eshell-mode-hook
+      '(lambda()
+          (local-set-key (kbd "SPC-b-c") 'eshell-clear-buffer)))
 
-(use-package meghanada
+(add-hook 'prog-mode-hook #'display-line-numbers-mode)
+
+(use-package flycheck
+  :hook (prog-mode . flycheck-mode))
+
+(use-package company
+  :diminish company-mode
+  :hook ('prog-mode . 'company-mode)
+  :config
+  (setq company-dabbrev-downcase 0)
+  (setq company-idle-delay 0.2)
+  (setq company-minimum-prefix-length 2))
+
+(use-package rainbow-delimiters
+  :commands rainbow-delimeters-mode
   :init
-  (defun java-meghanada-mode-hook ()
-    (meghanada-mode)
-    (flycheck-mode))
-  (add-hook 'java-mode-hook 'java-meghanada-mode-hook))
+  (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
+
+(use-package magit)
+
+(use-package git-gutter-fringe
+  :hook (after-init . global-git-gutter-mode)
+  :config
+  (setq-default fringes-outside-margins t)
+  (define-fringe-bitmap 'git-gutter-fr:added [224]
+    nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:modified [224]
+    nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240]
+    nil nil 'bottom))
+
+(use-package projectile
+  :config
+  (projectile-mode 1)
+  :hook (java-mode . projectile-mode))
+
+(use-package yasnippet
+  :diminish yas-minor-mode)
+
+(use-package toml-mode)
+
+(use-package rust-mode
+  :defer .1
+  :hook ('rust-mode . 'lsp))
+
+(use-package lsp-rust
+  :ensure f
+  :after lsp-mode)
+
+(use-package cargo
+  :hook ('rust-mode . 'cargo-minor-mode))
+
+(use-package flycheck-rust
+  :config (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
+
+(use-package lsp-mode
+  :init
+  (setq lsp-prefer-flymake nil)
+  :config (require 'lsp-clients)
+  :demand t)
+
+(use-package lsp-java
+  :defer .1
+  :hook ('java-mode . 'lsp))
+
+(use-package lsp-ui
+  :config
+  (setq flycheck-indication-mode 'left-fringe)
+  (define-fringe-bitmap 'flycheck-fringe-bitmap-double-arrow
+    [16 48 112 240 112 48 16] nil nil 'center))
+
+(use-package company-lsp
+  :config
+  (push 'company-lsp company-backends))
+
+(setq lsp-ui-doc-enable nil
+      lsp-ui-sideline-enable nil
+      lsp-ui-flycheck-enable t)
+
+(use-package dap-mode
+  :diminish
+  :defer .1
+  :after (lsp-mode)
+  :config
+  (dap-mode t)
+  (dap-ui-mode t))
+
+(use-package dap-java
+  :defer .1
+  :after (lsp-java)
+  :ensure nil)
+
+(setq dap-java-java-command "gnome-terminal -- java")
 
 (use-package gradle-mode
   :defer .1
+  :diminish gradle-mode
   :config
   (add-hook 'java-mode-hook 'gradle-mode))
-
-(use-package company
-  :defer .1
-  :config
-  (add-hook 'java-mode-hook 'company-mode))
-
-(use-package web-mode
-  :defer .1
-  :mode (("\\.js\\'" . web-mode)
-         ("\\.jsx\\'" . web-mode)
-         ("\\.css\\'" . web-mode)
-         ("\\.scss\\'" . web-mode)
-         ("\\.less\\'" . web-mode)
-         ("\\.xml\\'" . web-mode)
-         ("\\.html\\'" . web-mode)
-         ("\\.ts\\'" . web-mode)))
 
 (use-package nasm-mode
   :mode "\\.asm\\'"
   )
+
+(use-package web-mode
+  :config
+  (add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.[agj]sp\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.js\\'" . web-mode)))
+
+(defun ojf/open-init ()
+  (interactive)
+  (find-file "~/.emacs.d/init.org"))
+
+(defun ojf/change-theme-light ()
+  (interactive)
+  (load-theme 'gruvbox-light-soft)
+  (ojf/set-org-fonts)
+  (powerline-reset))
+
+(defun ojf/change-theme-dark ()
+  (interactive)
+  (load-theme 'gruvbox-dark-medium)
+  (ojf/set-org-fonts)
+  (powerline-reset))
+
+(defun ojf/reload-emacs ()
+  (interactive)
+  (org-babel-tangle "~/.emacs.d/init.org")
+  (load-file "~/.emacs.d/init.el"))
+
+(defun ojf/dap-debug-last ()
+  (interactive)
+  (dap-debug-last)
+  (let ((win-curr (selected-window))
+        (win-other (next-window)))
+    (select-window win-other)
+    (delete-window)
+    (select-window win-curr)))
 
 (use-package general
   :defer .1
@@ -291,22 +395,34 @@
   (global-leader-def
    :states 'normal
    :keymaps 'override
+   ;; Buffer ops
    "b s" 'save-buffer
    "b o" 'helm-find-files
-   "b k" 'kill-current-buffer)
+   "b k" 'kill-current-buffer
+   ;; Customization
+   "c e e" 'ojf/open-init
+   "c e r" 'ojf/reload-emacs
+   "c t l" 'ojf/change-theme-light
+   "c t d" 'ojf/change-theme-dark
+   ;; Magit stuff
+   "g g" 'magit-status
+   "g i" 'magit-init
+   )
 
   ;; mode bindings
   (general-create-definer mode-leader-def
     :prefix "SPC m")
 
-  (mode-leader-def 'normal org-mode-map
-                   ;; Org mode map
-                   )
-
-  (mode-leader-def 'normal java-mode-map
-                   ;;"e r" 'eclim-java-refactor-rename-symbol-at-point
-                   ;;"e p" 'eclim-problems-open-current
-                   ))
+  (mode-leader-def
+    :states 'normal
+    :keymaps 'java-mode-map
+    "d l" 'dap-ui-locals
+    "d r" 'dap-ui-repl
+    "d n" 'dap-next
+    "d b" 'dap-breakpoint-toggle
+    "d c" 'dap-continue
+    "d d" 'ojf/dap-debug-last
+    ))
 
 (use-package neotree
   :after evil
@@ -327,19 +443,25 @@
               (define-key evil-normal-state-local-map (kbd "H") 'neotree-hidden-file-toggle)))
   )
 
-(when (>= emacs-major-version 26)
-  (pixel-scroll-mode))
+(use-package plantuml-mode
+  :config
+  (setq plantuml-jar-path "~/.config/plantuml/plantuml.jar")
+  (setq plantuml-default-exec-mode 'jar)
+  (add-to-list 'auto-mode-alist '("\\.plantuml\\'" . plantuml-mode)))
+
+(electric-pair-mode 1)
 
 (use-package diminish
   :defer 1)
 
+(use-package doom-modeline
+  :hook (after-init . doom-modeline-mode))
+
 (use-package gruvbox-theme)
-(load-theme 'gruvbox)
+(load-theme 'gruvbox-dark-medium)
 
 (add-to-list 'default-frame-alist
              '(font . "DejaVuSansMono Nerd Font-18:style=Book"))
-
-(global-linum-mode 1)
 
 (menu-bar-mode -1)
 (toggle-scroll-bar -1)
@@ -366,6 +488,7 @@
 
 (use-package helm
   :ensure t
+  :diminish helm-mode
   :bind
   ("C-x C-f" . 'helm-find-files)
   ("C-x C-b" . 'helm-buffers-list)
