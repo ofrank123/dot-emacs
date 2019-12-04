@@ -212,6 +212,9 @@
   :config
   (evil-collection-init))
 
+(use-package evil-mc
+  :hook (after-init . global-evil-mc-mode))
+
 (use-package evil-org
   :after evil
   :defer .1
@@ -428,6 +431,7 @@
 (use-package doom-modeline
   :hook (after-init . doom-modeline-mode))
 
+(use-package doom-themes)
 (use-package gruvbox-theme)
 (load-theme 'gruvbox-dark-medium)
 

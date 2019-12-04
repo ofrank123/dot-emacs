@@ -444,6 +444,12 @@ Start evil mode
     (evil-collection-init))
 #+end_src
 
+** multiple cursors
+To get multiple cursors with evil mode, I use =evil-mc=
+#+BEGIN_SRC emacs-lisp
+  (use-package evil-mc
+    :hook (after-init . global-evil-mc-mode))
+#+END_SRC
 
 ** =evil-org= setup
 Next, we setup =evil-org= which provides vim like keybindings with =org=, making working in it more similar to editing other buffers in evil.
@@ -752,6 +758,7 @@ Setup powerline and make sure it is loaded after everything else, because otherw
 
 I really like gruvbox, but this could be any theme
 #+begin_src emacs-lisp
+  (use-package doom-themes)
   (use-package gruvbox-theme)
   (load-theme 'gruvbox-dark-medium)
 #+end_src

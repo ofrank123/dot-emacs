@@ -8,7 +8,7 @@
  '(backup-directory-alist (quote (("." . "~/.emacs.d/backups"))))
  '(custom-safe-themes
    (quote
-    ("8e797edd9fa9afec181efbfeeebf96aeafbd11b69c4c85fa229bb5b9f7f7e66c" "2b9dc43b786e36f68a9fd4b36dd050509a0e32fe3b0a803310661edb7402b8b6" "8f97d5ec8a774485296e366fdde6ff5589cf9e319a584b845b6f7fa788c9fa9a" "a22f40b63f9bc0a69ebc8ba4fbc6b452a4e3f84b80590ba0a92b4ff599e53ad0" "1436d643b98844555d56c59c74004eb158dc85fc55d2e7205f8d9b8c860e177f" default)))
+    ("3bca56f0b4e4e6b6f94b92588cd26e06c585beccdecaea32b1cf5b67b78d6a86" "423435c7b0e6c0942f16519fa9e17793da940184a50201a4d932eafe4c94c92d" "8e797edd9fa9afec181efbfeeebf96aeafbd11b69c4c85fa229bb5b9f7f7e66c" "2b9dc43b786e36f68a9fd4b36dd050509a0e32fe3b0a803310661edb7402b8b6" "8f97d5ec8a774485296e366fdde6ff5589cf9e319a584b845b6f7fa788c9fa9a" "a22f40b63f9bc0a69ebc8ba4fbc6b452a4e3f84b80590ba0a92b4ff599e53ad0" "1436d643b98844555d56c59c74004eb158dc85fc55d2e7205f8d9b8c860e177f" default)))
  '(eclim-eclipse-dirs
    (quote
     ("~/.eclipse/org.eclipse.platform_4.12.0_155965261_linux_gtk_x86_64")))
@@ -43,7 +43,7 @@
  '(package-check-signature nil)
  '(package-selected-packages
    (quote
-    (git-gutter-fringe git-gutter-fring doom-modeline plantuml-mode dap-java web-mode java-snippets rainbow-delimiters eclim all-the-icons evil powerline-evil helm diminish evil-org-agenda toc-org org-journal org-jira ox-jira ox-gfm htmlize smooth-scrolling paradox auto-compile use-package powerline org-bullets nord-theme magit gruvbox-theme general evil-org evil-collection)))
+    (doom-themes evil-mc git-gutter-fringe git-gutter-fring doom-modeline plantuml-mode dap-java web-mode java-snippets rainbow-delimiters eclim all-the-icons evil powerline-evil helm diminish evil-org-agenda toc-org org-journal org-jira ox-jira ox-gfm htmlize smooth-scrolling paradox auto-compile use-package powerline org-bullets nord-theme magit gruvbox-theme general evil-org evil-collection)))
  '(packages-archives (quote (("melpa" . "http://melpa.org/packages/"))) t)
  '(paradox-github-token t t)
  '(read-buffer-completion-ignore-case t)
