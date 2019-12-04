@@ -148,6 +148,10 @@
   :custom
   (org-journal-dir "~/cs/logbook"))
 
+(defun nolinum()
+  (linum-mode 0))
+(add-hook 'org-mode-hook 'nolinum)
+
 (use-package org-bullets
   :after org
   :hook
@@ -198,6 +202,7 @@
   
   :config
   (evil-mode)
+  (setq linum-relative-global-mode t)
   )
 
 (eval-after-load "evil"
@@ -240,6 +245,17 @@
 
 (add-hook 'prog-mode-hook #'display-line-numbers-mode)
 
+(use-package flycheck
+  :hook (prog-mode . flycheck-mode))
+
+(use-package company
+  :diminish company-mode
+  :hook ('prog-mode . 'company-mode)
+  :config
+  (setq company-dabbrev-downcase 0)
+  (setq company-idle-delay 0.2)
+  (setq company-minimum-prefix-length 2))
+
 (use-package rainbow-delimiters
   :commands rainbow-delimeters-mode
   :init
@@ -266,20 +282,41 @@
 (use-package yasnippet
   :diminish yas-minor-mode)
 
+(use-package toml-mode)
+
+(use-package rust-mode
+  :defer .1
+  :hook ('rust-mode . 'lsp))
+
+(use-package lsp-rust
+  :ensure f
+  :after lsp-mode)
+
+(use-package cargo
+  :hook ('rust-mode . 'cargo-minor-mode))
+
+(use-package flycheck-rust
+  :config (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
+
 (use-package lsp-mode
   :init
   (setq lsp-prefer-flymake nil)
+  :config (require 'lsp-clients)
   :demand t)
 
 (use-package lsp-java
+  :defer .1
   :hook ('java-mode . 'lsp))
 
 (use-package lsp-ui
-  :hook ('java-mode . 'flycheck-mode)
   :config
   (setq flycheck-indication-mode 'left-fringe)
   (define-fringe-bitmap 'flycheck-fringe-bitmap-double-arrow
     [16 48 112 240 112 48 16] nil nil 'center))
+
+(use-package company-lsp
+  :config
+  (push 'company-lsp company-backends))
 
 (setq lsp-ui-doc-enable nil
       lsp-ui-sideline-enable nil
@@ -306,17 +343,9 @@
   :config
   (add-hook 'java-mode-hook 'gradle-mode))
 
-(use-package company
-  :diminish company-mode
-  :hook ('java-mode . 'company-mode)
-  :config
-  (setq company-dabbrev-downcase 0)
-  (setq company-idle-delay 0.3)
-  (setq company-minimum-prefix-length 2))
-
-(use-package company-lsp
-  :config
-  (push 'company-lsp company-backends))
+(use-package nasm-mode
+  :mode "\\.asm\\'"
+  )
 
 (use-package web-mode
   :config
@@ -436,7 +465,7 @@
 (load-theme 'gruvbox-dark-medium)
 
 (add-to-list 'default-frame-alist
-             '(font . "DejaVuSansMono Nerd Font-12:style=Book"))
+             '(font . "DejaVuSansMono Nerd Font-10:style=Book"))
 
 (menu-bar-mode -1)
 (toggle-scroll-bar -1)

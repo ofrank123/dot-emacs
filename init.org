@@ -278,6 +278,13 @@ We add an entry to the font-lock table so that list markers are show with a midd
                              (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
 #+end_src
 
+Turn of line numbers in org mode because they look weird with proportional text
+#+begin_src emacs-lisp
+  (defun nolinum()
+    (linum-mode 0))
+  (add-hook 'org-mode-hook 'nolinum)
+#+end_src
+
 We use the =org-bullets= package to display the tiles with fancy unicode bullets instead of the text ones
 #+begin_src emacs-lisp
   (use-package org-bullets
@@ -433,6 +440,7 @@ Add code folding.  By default =za= toggles visibility with evil.
 Start evil mode
 #+begin_src emacs-lisp :tangle no :noweb-ref evil-mode-config
   (evil-mode)
+  (setq linum-relative-global-mode t)
 #+end_src
 
 ** =evil-collection= setup
@@ -492,6 +500,21 @@ prog-mode has all of the programming modes in it.  I'm using a hook to turn on l
 #+END_SRC
 
 #+BEGIN_SRC emacs-lisp
+  (use-package flycheck
+    :hook (prog-mode . flycheck-mode))
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+  (use-package company
+    :diminish company-mode
+    :hook ('prog-mode . 'company-mode)
+    :config
+    (setq company-dabbrev-downcase 0)
+    (setq company-idle-delay 0.2)
+    (setq company-minimum-prefix-length 2))
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
   (use-package rainbow-delimiters
     :commands rainbow-delimeters-mode
     :init
@@ -536,27 +559,51 @@ Minimal yasnippet setup so I can use snippets (mainly in java, but the list will
     :diminish yas-minor-mode)
 #+end_src
 
+** Rust
+#+BEGIN_SRC emacs-lisp
+  (use-package toml-mode)
+
+  (use-package rust-mode
+    :defer .1
+    :hook ('rust-mode . 'lsp))
+
+  (use-package lsp-rust
+    :ensure f
+    :after lsp-mode)
+
+  (use-package cargo
+    :hook ('rust-mode . 'cargo-minor-mode))
+
+  (use-package flycheck-rust
+    :config (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
+#+END_SRC
+
 ** LSP and Java
 Because I have to use java (ew), I'm going to keep it within emacs.  I use LSP because it works with the dap-mode debugger and additionally projectile.  Also it's super easy to setup.
 #+begin_src emacs-lisp
-    (use-package lsp-mode
-      :init
-      (setq lsp-prefer-flymake nil)
-      :demand t)
+  (use-package lsp-mode
+    :init
+    (setq lsp-prefer-flymake nil)
+    :config (require 'lsp-clients)
+    :demand t)
 
-    (use-package lsp-java
-      :hook ('java-mode . 'lsp))
+  (use-package lsp-java
+    :defer .1
+    :hook ('java-mode . 'lsp))
 
-    (use-package lsp-ui
-      :hook ('java-mode . 'flycheck-mode)
-      :config
-      (setq flycheck-indication-mode 'left-fringe)
-      (define-fringe-bitmap 'flycheck-fringe-bitmap-double-arrow
-        [16 48 112 240 112 48 16] nil nil 'center))
+  (use-package lsp-ui
+    :config
+    (setq flycheck-indication-mode 'left-fringe)
+    (define-fringe-bitmap 'flycheck-fringe-bitmap-double-arrow
+      [16 48 112 240 112 48 16] nil nil 'center))
 
-    (setq lsp-ui-doc-enable nil
-          lsp-ui-sideline-enable nil
-          lsp-ui-flycheck-enable t)
+  (use-package company-lsp
+    :config
+    (push 'company-lsp company-backends))
+
+  (setq lsp-ui-doc-enable nil
+        lsp-ui-sideline-enable nil
+        lsp-ui-flycheck-enable t)
 #+end_src
 
 *** dap-mode
@@ -582,6 +629,7 @@ Get the dap-java package for dap-mode
 #+BEGIN_SRC emacs-lisp
   (setq dap-java-java-command "gnome-terminal -- java")
 #+END_SRC
+
 *** Gradle
 I use gradle for building my java stuff, because fuck dealing with javac
 #+begin_src emacs-lisp
@@ -592,22 +640,12 @@ I use gradle for building my java stuff, because fuck dealing with javac
     (add-hook 'java-mode-hook 'gradle-mode))
 #+end_src
 
-** Company
-Company-mode gives us code completion, and integrates with meghanada
-#+begin_src emacs-lisp
-  (use-package company
-    :diminish company-mode
-    :hook ('java-mode . 'company-mode)
-    :config
-    (setq company-dabbrev-downcase 0)
-    (setq company-idle-delay 0.3)
-    (setq company-minimum-prefix-length 2))
-#+end_src
-
+** x86_64 Assembler (NASM)
+I use =NASM= because it's nicer than =GAS= (fight me).
 #+BEGIN_SRC emacs-lisp
-  (use-package company-lsp
-    :config
-    (push 'company-lsp company-backends))
+  (use-package nasm-mode
+    :mode "\\.asm\\'"
+    )
 #+END_SRC
 
 ** web-mode
@@ -766,7 +804,7 @@ I really like gruvbox, but this could be any theme
 Set the default font across emacs.
 #+begin_src emacs-lisp
   (add-to-list 'default-frame-alist
-               '(font . "DejaVuSansMono Nerd Font-12:style=Book"))
+               '(font . "DejaVuSansMono Nerd Font-10:style=Book"))
 #+end_src
 
 Disable the Emacs menubar, toolbar, and scrollbar, because they're ugly
