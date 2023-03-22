@@ -1,5 +1,8 @@
-;; Packages
 (message "Initializing Emacs...")
+;; Prevent defaults configs
+(setq inhibit-default-init t)
+
+;; Packages
 (require 'package)
 (add-to-list 'package-archives
 	     '("melpa" . "https://melpa.org/packages/"))
@@ -69,6 +72,9 @@
 (setq undo-limit 20000000)
 (setq undo-strong-limit 40000000)
 
+;; Save Sessions
+(desktop-save-mode 1)
+
 ;; Who decided this was a good idea
 (global-unset-key (kbd "<mouse-2>"))
 
@@ -77,7 +83,31 @@
 (scroll-bar-mode -1)
 (tool-bar-mode -1)
 
-;; Commands
+;; Shell
+(add-hook 'eshell-mode-hook
+          (defun my-eshell-mode-setup ()
+            (remove-hook 'eshell-output-filter-functions
+                         'eshell-postoutput-scroll-to-bottom)
+	    (remove-hook 'comint-output-filter-functions
+			 'comint-postoutput-scroll-to-bottom)))
+;; Redefine clear
+(defun eshell/clear ()
+  "Clear the eshell buffer."
+  (let ((inhibit-read-only t))
+    (erase-buffer)))
+
+;; Modeline
+(setq-default mode-line-format
+	      (list "    "
+		    mode-line-buffer-identification
+		    "  "
+		    "%l" ":" '(:eval (number-to-string (count-lines (point-min) (point-max))))
+		    "  "
+		    evil-mode-line-tag 
+		    "  "
+		    mode-name))
+
+;; Custom Commands
 (defun reload-emacs () (interactive)
        (load-file "~/.emacs.d/init.el"))
 
@@ -166,4 +196,4 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:inherit nil :extend nil :stipple nil :background "#002b36" :foreground "#839496" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 120 :width normal :foundry "outline" :family "Consolas")))))
+ '(default ((t (:inherit nil :extend nil :stipple nil :background "#002b36" :foreground "#839496" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 120 :width normal :foundry "outline" :family "DejaVu Sans Mono")))))
