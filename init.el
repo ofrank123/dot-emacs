@@ -54,7 +54,6 @@
 ;; Global binds
 (define-key global-map "\t" 'dabbrev-expand)
 
-;; THEME
 ;; Solarized Theme
 (unless (package-installed-p 'solarized-theme)
   (package-install 'solarized-theme))
@@ -89,12 +88,10 @@
             (remove-hook 'eshell-output-filter-functions
                          'eshell-postoutput-scroll-to-bottom)
 	    (remove-hook 'comint-output-filter-functions
-			 'comint-postoutput-scroll-to-bottom)))
-;; Redefine clear
-(defun eshell/clear ()
-  "Clear the eshell buffer."
-  (let ((inhibit-read-only t))
-    (erase-buffer)))
+			 'comint-postoutput-scroll-to-bottom)
+	    (defun eshell/clear () "Clear the eshell buffer."
+		   (let ((inhibit-read-only t))
+		     (erase-buffer)))))
 
 ;; Modeline
 (setq-default mode-line-format
