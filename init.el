@@ -1,4 +1,4 @@
-;; Pacakges
+;; Packages
 (message "Initializing Emacs...")
 (require 'package)
 (add-to-list 'package-archives
