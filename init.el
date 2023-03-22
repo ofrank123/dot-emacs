@@ -15,9 +15,12 @@
   (package-install 'evil))
 (require 'evil)
 (evil-mode 1)				
-(setq evil-emacs-state-modes nil)
-(setq evil-insert-state-modes nil)
-(setq evil-motion-state-modes nil)
+(setq evil-emacs-state-modes nil
+      evil-insert-state-modes nil
+      evil-motion-state-modes nil
+      evil-visual-state-cursor '(box "#cb4b16")
+      evil-normal-state-cursor '(box "#839496")
+      evil-insert-state-cursor '(bar "#839496"))
 
 ;; KEYBINDS
 
@@ -102,8 +105,6 @@
 		    mode-line-buffer-identification
 		    "  "
 		    "%l" ":" '(:eval (number-to-string (count-lines (point-min) (point-max))))
-		    "  "
-		    evil-mode-line-tag 
 		    "  "
 		    mode-name))
 
