@@ -43,11 +43,22 @@
 
 ;; Buffer stuff
 (general-evil-define-key 'normal 'global
- :prefix "SPC b"
- "k" 'kill-buffer
- "s" 'ido-switch-buffer
- "o" 'find-file
- )
+  :prefix "SPC b"
+  "k" 'kill-buffer
+  "s" 'ido-switch-buffer
+  "o" 'find-file
+  )
+
+;; Emacs stuff
+(defun reload-emacs () (interactive)
+       (load-file "~/.emacs.d/init.el"))
+(defun init-emacs () (interactive)
+       (find-file "~/.emacs.d/init.el"))
+(general-evil-define-key 'normal 'global
+  :prefix "SPC e"
+  "r" 'reload-emacs
+  "i" 'init-emacs
+  )
 
 ;; Visual mode binds
 (general-evil-define-key 'visual 'global
@@ -108,11 +119,12 @@
 		    "  "
 		    mode-name))
 
-;; Custom Commands
-(defun reload-emacs () (interactive)
-       (load-file "~/.emacs.d/init.el"))
-
 ;; Languages
+(require 'cc-mode) ;; C/C++
+(unless (package-installed-p 'rust-mode) ;; Rust
+  (package-install 'rust-mode))
+(require 'rust-mode)
+
 ; Accepted file extensions and their appropriate modes
 (setq auto-mode-alist
       (append
@@ -122,10 +134,10 @@
          ("\\.cc$"    . c++-mode)
          ("\\.txt$"   . indented-text-mode)
          ("\\.emacs$" . emacs-lisp-mode)
+         ("\\.rs$" . rust-mode)
          ) auto-mode-alist))
 
 ;; C++
-(require 'cc-mode)
 
 ;; C++ indentation style
 (defconst my-c-style
