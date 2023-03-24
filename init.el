@@ -58,11 +58,12 @@
   :prefix "SPC e"
   "r" 'reload-emacs
   "i" 'init-emacs
+  "k" 'kill-emacs
   )
 
 ;; Visual mode binds
 (general-evil-define-key 'visual 'global
-  "i" 'indent-region
+  "<tab>" 'indent-region
   )
 
 ;; Global binds
@@ -95,6 +96,9 @@
 (menu-bar-mode -1)
 (scroll-bar-mode -1)
 (tool-bar-mode -1)
+
+;; Scrolling
+(setq scroll-step 1)
 
 ;; Shell
 (add-hook 'eshell-mode-hook
@@ -183,15 +187,25 @@
 
 ; C/C++
 (defun my-c-hook ()
+  ;; Indents
   (c-add-style "IndentStyle" my-c-style t)
-
   (setq tab-width 4
 	indent-tabs-mod nil)
+
+  ;; Autocomplete
   (setq dabbrev-case-replace t)
   (setq dabbrev-case-fold-search t)
   (setq dabbrev-upcase-means-case-search t)
+
+  ;; Braces
+  (electric-pair-mode t)
+
+  ;; Bindings
   (define-key c++-mode-map "\t" 'dabbrev-expand)
+  (define-key c++-mode-map (kbd "<S-tab>") 'indent-for-tab-command)
+  (define-key c++-mode-map (kbd "<backtab>") 'indent-for-tab-command)
 )
+
 
 (add-hook 'c-mode-common-hook 'my-c-hook)
 
