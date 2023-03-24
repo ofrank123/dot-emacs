@@ -62,12 +62,12 @@
 ;; Emacs stuff
 (defun reload-emacs () (interactive)
        (load-file "~/.emacs.d/init.el"))
-(defun init-emacs () (interactive)
+(defun config-emacs () (interactive)
        (find-file "~/.emacs.d/init.el"))
 (general-evil-define-key 'normal 'global
   :prefix "SPC e"
   "r" 'reload-emacs
-  "i" 'init-emacs
+  "c" 'config-emacs
   "k" 'kill-emacs
   )
 
