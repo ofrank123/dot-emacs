@@ -1,4 +1,14 @@
 (message "Initializing Emacs...")
+
+(setq on-linux (featurep 'x))
+(setq on-win32 (not on-linux))
+
+(when on-win32
+  (setq buildscript "build.bat"))
+
+(when on-linux
+  (setq buildscript "./build"))
+
 ;; Prevent defaults configs
 (setq inhibit-default-init t)
 
@@ -43,22 +53,11 @@
 
 ;; Buffer stuff
 (general-evil-define-key 'normal 'global
-  :prefix "SPC b"
-  "k" 'kill-buffer
-  "s" 'ido-switch-buffer
-  "o" 'find-file
-  )
-
-;; Emacs stuff
-(defun reload-emacs () (interactive)
-       (load-file "~/.emacs.d/init.el"))
-(defun init-emacs () (interactive)
-       (find-file "~/.emacs.d/init.el"))
-(general-evil-define-key 'normal 'global
-  :prefix "SPC e"
-  "r" 'reload-emacs
-  "i" 'init-emacs
-  )
+ :prefix "SPC b"
+ "k" 'kill-buffer
+ "s" 'ido-switch-buffer
+ "o" 'find-file
+ )
 
 ;; Visual mode binds
 (general-evil-define-key 'visual 'global
@@ -90,6 +89,10 @@
 
 ;; Who decided this was a good idea
 (global-unset-key (kbd "<mouse-2>"))
+;; Who decided this was a good idea #2
+(setq make-backup-files nil)
+;; Who decided this was a good idea #3
+(setq make-auto-default nil)
 
 ;; Disable menus
 (menu-bar-mode -1)
@@ -116,12 +119,11 @@
 		    "  "
 		    mode-name))
 
-;; Languages
-(require 'cc-mode) ;; C/C++
-(unless (package-installed-p 'rust-mode) ;; Rust
-  (package-install 'rust-mode))
-(require 'rust-mode)
+;; Custom Commands
+(defun reload-emacs () (interactive)
+       (load-file "~/.emacs.d/init.el"))
 
+;; Languages
 ; Accepted file extensions and their appropriate modes
 (setq auto-mode-alist
       (append
@@ -131,10 +133,11 @@
          ("\\.cc$"    . c++-mode)
          ("\\.txt$"   . indented-text-mode)
          ("\\.emacs$" . emacs-lisp-mode)
-         ("\\.rs$" . rust-mode)
          ) auto-mode-alist))
 
 ;; C++
+(require 'cc-mode)
+(require 'compile)
 
 ;; C++ indentation style
 (defconst my-c-style
@@ -191,16 +194,71 @@
   (setq dabbrev-case-fold-search t)
   (setq dabbrev-upcase-means-case-search t)
   (define-key c++-mode-map "\t" 'dabbrev-expand)
-)
+  (electric-pair-mode t)
+
+  ; devenv.com error parsing
+  (add-to-list 'compilation-error-regexp-alist 'my-devenv)
+  (add-to-list 'compilation-error-regexp-alist-alist '(my-devenv
+   "*\\([0-9]+>\\)?\\(\\(?:[a-zA-Z]:\\)?[^:(\t\n]+\\)(\\([0-9]+\\)) : \\(?:see declaration\\|\\(?:warnin\\(g\\)\\|[a-z ]+\\) C[0-9]+:\\)"
+   2 3 nil (4)))
+  )
 
 (add-hook 'c-mode-common-hook 'my-c-hook)
+
+;; Compilation
+(setq compilation-directory-locked nil)
+(setq compilation-context-lines 0)
+(setq compilation-error-regexp-alist
+    (cons '("^\\([0-9]+>\\)?\\(\\(?:[a-zA-Z]:\\)?[^:(\t\n]+\\)(\\([0-9]+\\)) : \\(?:fatal error\\|warnin\\(g\\)\\) C[0-9]+:" 2 3 nil (4))
+	  compilation-error-regexp-alist))
+(setq compilation-auto-jump-to-first-error t)
+
+(defun find-project-directory-recursive ()
+  "Recursively search for a makefile."
+  (interactive)
+  (if (file-exists-p buildscript) t
+      (cd "../")
+      (find-project-directory-recursive)))
+
+(defun lock-compilation-directory ()
+  "The compilation process should NOT hunt for a makefile"
+  (interactive)
+  (setq compilation-directory-locked t)
+  (message "Compilation directory is locked."))
+
+(defun unlock-compilation-directory ()
+  "The compilation process SHOULD hunt for a makefile"
+  (interactive)
+  (setq compilation-directory-locked nil)
+  (message "Compilation directory is roaming."))
+
+(defun find-project-directory ()
+  "Find the project directory."
+  (interactive)
+  (setq find-project-from-directory default-directory)
+  (switch-to-buffer-other-window "*compilation*")
+  (if compilation-directory-locked (cd last-compilation-directory)
+  (cd find-project-from-directory)
+  (find-project-directory-recursive)
+  (setq last-compilation-directory default-directory)))
+
+(defun make-without-asking ()
+  "Make the current build."
+  (interactive)
+  (if (find-project-directory) (compile buildscript))
+  (other-window 1))
+
+;; Buffer stuff
+(general-evil-define-key 'normal 'global
+ :prefix "SPC"
+ "m" 'make-without-asking)
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(package-selected-packages '(general solarized-theme evil)))
+ '(package-selected-packages '(rust-mode general solarized-theme evil)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
