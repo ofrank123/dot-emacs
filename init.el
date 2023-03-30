@@ -59,6 +59,18 @@
  "o" 'find-file
  )
 
+;; Emacs stuff
+(defun reload-emacs () (interactive)
+       (load-file "~/.emacs.d/init.el"))
+(defun config-emacs () (interactive)
+       (find-file "~/.emacs.d/init.el"))
+(general-evil-define-key 'normal 'global
+  :prefix "SPC e"
+  "k" 'kill-emacs
+  "r" 'reload-emacs
+  "c" 'config-emacs)
+
+
 ;; Visual mode binds
 (general-evil-define-key 'visual 'global
   "i" 'indent-region
@@ -97,6 +109,8 @@
 (setq make-backup-files nil)
 ;; Who decided this was a good idea #3
 (setq make-auto-default nil)
+;; Who decided this was a good idea #4
+(setq scroll-conservatively most-positive-fixnum)
 
 ;; Disable menus
 (menu-bar-mode -1)
@@ -122,10 +136,6 @@
 		    "%l" ":" '(:eval (number-to-string (count-lines (point-min) (point-max))))
 		    "  "
 		    mode-name))
-
-;; Custom Commands
-(defun reload-emacs () (interactive)
-       (load-file "~/.emacs.d/init.el"))
 
 ;; Languages
 ; Accepted file extensions and their appropriate modes
