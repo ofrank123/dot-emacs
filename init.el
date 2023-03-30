@@ -53,31 +53,23 @@
 
 ;; Buffer stuff
 (general-evil-define-key 'normal 'global
-  :prefix "SPC b"
-  "k" 'kill-buffer
-  "s" 'ido-switch-buffer
-  "o" 'find-file
-  )
-
-;; Emacs stuff
-(defun reload-emacs () (interactive)
-       (load-file "~/.emacs.d/init.el"))
-(defun config-emacs () (interactive)
-       (find-file "~/.emacs.d/init.el"))
-(general-evil-define-key 'normal 'global
-  :prefix "SPC e"
-  "r" 'reload-emacs
-  "c" 'config-emacs
-  "k" 'kill-emacs
-  )
+ :prefix "SPC b"
+ "k" 'kill-buffer
+ "s" 'ido-switch-buffer
+ "o" 'find-file
+ )
 
 ;; Visual mode binds
 (general-evil-define-key 'visual 'global
-  "<tab>" 'indent-region
+  "i" 'indent-region
   )
 
 ;; Global binds
 (define-key global-map "\t" 'dabbrev-expand)
+
+;; Mode binds
+(general-create-definer my-local-leader-def
+  :prefix "SPC m")
 
 ;; Solarized Theme
 (unless (package-installed-p 'solarized-theme)
@@ -110,9 +102,6 @@
 (menu-bar-mode -1)
 (scroll-bar-mode -1)
 (tool-bar-mode -1)
-
-;; Scrolling
-(setq scroll-step 1)
 
 ;; Shell
 (add-hook 'eshell-mode-hook
@@ -148,6 +137,10 @@
          ("\\.cc$"    . c++-mode)
          ("\\.txt$"   . indented-text-mode)
          ("\\.emacs$" . emacs-lisp-mode)
+	 ("\\.html"   . mhtml-mode)
+	 ("\\.vert"   . glsl-mode)
+	 ("\\.frag"   . glsl-mode)
+	 ("\\.gl"   . glsl-mode)
          ) auto-mode-alist))
 
 ;; C++
@@ -201,23 +194,14 @@
 
 ; C/C++
 (defun my-c-hook ()
-  ;; Indents
   (c-add-style "IndentStyle" my-c-style t)
+
   (setq tab-width 4
 	indent-tabs-mod nil)
-
-  ;; Autocomplete
   (setq dabbrev-case-replace t)
   (setq dabbrev-case-fold-search t)
   (setq dabbrev-upcase-means-case-search t)
-
-  ;; Braces
-  (electric-pair-mode t)
-
-  ;; Bindings
   (define-key c++-mode-map "\t" 'dabbrev-expand)
-  (define-key c++-mode-map (kbd "<S-tab>") 'indent-for-tab-command)
-  (define-key c++-mode-map (kbd "<backtab>") 'indent-for-tab-command)
   (electric-pair-mode t)
 
   ; devenv.com error parsing
@@ -226,7 +210,6 @@
    "*\\([0-9]+>\\)?\\(\\(?:[a-zA-Z]:\\)?[^:(\t\n]+\\)(\\([0-9]+\\)) : \\(?:see declaration\\|\\(?:warnin\\(g\\)\\|[a-z ]+\\) C[0-9]+:\\)"
    2 3 nil (4)))
   )
-
 
 (add-hook 'c-mode-common-hook 'my-c-hook)
 
@@ -273,17 +256,41 @@
   (if (find-project-directory) (compile buildscript))
   (other-window 1))
 
-;; Buffer stuff
-(general-evil-define-key 'normal 'global
- :prefix "SPC"
- "m" 'make-without-asking)
+;; Markdown
+
+(unless (package-installed-p 'impatient-mode)
+  (package-install 'impatient-mode))
+(require 'impatient-mode)
+
+(defun markdown-html (buffer)
+  (princ (with-current-buffer buffer
+	   (format "<!DOCTYPE html><html><title>Impatient Markdown</title><xmp theme=\"united\" style=\"display:none;\"> %s  </xmp><script src=\"http://ndossougbe.github.io/strapdown/dist/strapdown.js\"></script></html>" (buffer-substring-no-properties (point-min) (point-max))))
+	 (current-buffer)))
+
+(defun start-md-server ()
+  "Start a markdown server"
+  (interactive)
+  (httpd-start)
+  (impatient-mode))
+
+;; GLSL
+(unless (package-installed-p 'glsl-mode)
+  (package-install 'glsl-mode))
+(require 'glsl-mode)
+
+(my-local-leader-def
+ :states 'normal
+ :keymaps 'c++-mode-map
+ "m" 'make-without-asking
+ "h" 'ff-find-other-file)
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(package-selected-packages '(rust-mode general solarized-theme evil)))
+ '(package-selected-packages
+   '(glsl-mode impatient-mode rust-mode general solarized-theme evil)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
