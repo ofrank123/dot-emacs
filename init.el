@@ -153,6 +153,18 @@
 	 ("\\.gl"   . glsl-mode)
          ) auto-mode-alist))
 
+;; LSP
+(unless (package-installed-p 'eglot)
+  (package-install 'eglot))
+(require 'eglot)
+(require 'flymake)
+(add-to-list 'eglot-server-programs
+	     '(c-mode c++-mode . ("clangd")))
+(add-hook 'c-mode-hook #'eglot-ensure)
+(add-hook 'c++-mode-hook #'eglot-ensure)
+(setq eglot-send-changes-idle-time 1.0)
+(setq flymake-no-changes-timeout 1.0)
+
 ;; C++
 (require 'cc-mode)
 (require 'compile)
@@ -219,6 +231,7 @@
   (add-to-list 'compilation-error-regexp-alist-alist '(my-devenv
    "*\\([0-9]+>\\)?\\(\\(?:[a-zA-Z]:\\)?[^:(\t\n]+\\)(\\([0-9]+\\)) : \\(?:see declaration\\|\\(?:warnin\\(g\\)\\|[a-z ]+\\) C[0-9]+:\\)"
    2 3 nil (4)))
+  (eglot-inlay-hints-mode -1)
   )
 
 (add-hook 'c-mode-common-hook 'my-c-hook)
@@ -300,7 +313,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(glsl-mode impatient-mode rust-mode general solarized-theme evil)))
+   '(eglot glsl-mode impatient-mode rust-mode general solarized-theme evil)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
