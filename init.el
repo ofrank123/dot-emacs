@@ -1,5 +1,4 @@
 (message "Initializing Emacs...")
-
 (setq on-linux (featurep 'x))
 (setq on-win32 (not on-linux))
 
@@ -7,7 +6,7 @@
   (setq buildscript "build.bat"))
 
 (when on-linux
-  (setq buildscript "./build"))
+  (setq buildscript "./build.linux"))
 
 ;; Prevent defaults configs
 (setq inhibit-default-init t)
@@ -20,10 +19,15 @@
 (when (not package-archive-contents)
   (package-refresh-contents))
 
+;; Undo Tree
+(unless (package-installed-p 'undo-tree)
+  (package-install 'undo-tree))
+
 ;; Evil mode
 (unless (package-installed-p 'evil)
   (package-install 'evil))
 (require 'evil)
+(setq evil-undo-system 'undo-tree)
 (evil-mode 1)				
 (setq evil-emacs-state-modes nil
       evil-insert-state-modes nil
@@ -305,7 +309,12 @@
  :states 'normal
  :keymaps 'c++-mode-map
  "m" 'make-without-asking
- "h" 'ff-find-other-file)
+ "h" 'ff-find-other-file
+ "e" 'flymake-goto-next-error
+ "E" 'flymake-goto-prev-error
+ "d" 'xref-find-definitions
+ "D" 'xref-go-back
+ )
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
