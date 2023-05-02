@@ -19,15 +19,11 @@
 (when (not package-archive-contents)
   (package-refresh-contents))
 
-;; Undo Tree
-(unless (package-installed-p 'undo-tree)
-  (package-install 'undo-tree))
-
 ;; Evil mode
 (unless (package-installed-p 'evil)
   (package-install 'evil))
 (require 'evil)
-(setq evil-undo-system 'undo-tree)
+(setq evil-undo-system 'undo-redo)
 (evil-mode 1)				
 (setq evil-emacs-state-modes nil
       evil-insert-state-modes nil
@@ -321,6 +317,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(evil-undo-system 'undo-redo)
  '(package-selected-packages
    '(eglot glsl-mode impatient-mode rust-mode general solarized-theme evil)))
 (custom-set-faces
