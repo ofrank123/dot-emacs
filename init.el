@@ -22,15 +22,52 @@
 ;; Evil mode
 (unless (package-installed-p 'evil)
   (package-install 'evil))
+(unless (package-installed-p 'evil-mc)
+  (package-install 'evil-mc))
 (require 'evil)
+(require 'evil-mc)
 (setq evil-undo-system 'undo-redo)
-(evil-mode 1)				
+(evil-mode 1)
+
+; Multicursor
+(global-evil-mc-mode 1)
+(evil-define-key 'visual evil-mc-key-map
+  "a" #'evil-mc-make-cursor-in-visual-selection-end
+  "i" #'evil-mc-make-cursor-in-visual-selection-beg)
 (setq evil-emacs-state-modes nil
       evil-insert-state-modes nil
       evil-motion-state-modes nil
       evil-visual-state-cursor '(box "#cb4b16")
       evil-normal-state-cursor '(box "#839496")
       evil-insert-state-cursor '(bar "#839496"))
+
+;; Project / Treemacs
+(unless (package-installed-p 'all-the-icons)
+  (package-install 'all-the-icons))
+(when (display-graphic-p)
+  (require 'all-the-icons))
+(unless (package-installed-p 'projectile)
+  (package-install 'projectile))
+(require 'projectile)
+(define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
+(projectile-mode +1)
+
+(unless (package-installed-p 'treemacs)
+  (package-install 'treemacs))
+(unless (package-installed-p 'treemacs-evil)
+  (package-install 'treemacs-evil))
+(unless (package-installed-p 'treemacs-projectile)
+  (package-install 'treemacs-projectile))
+(unless (package-installed-p 'treemacs-all-the-icons)
+  (package-install 'treemacs-all-the-icons))
+(require 'treemacs-evil)
+(require 'treemacs-projectile)
+(require 'treemacs-all-the-icons)
+(require 'treemacs)
+(treemacs-load-theme "all-the-icons")
+(treemacs-define-RET-action 'file-node-open   #'treemacs-visit-node-in-most-recently-used-window)
+(treemacs-define-RET-action 'file-node-closed #'treemacs-visit-node-in-most-recently-used-window)
+(setq treemacs-default-visit-action 'treemacs-visit-node-close-treemacs)
 
 ;; KEYBINDS
 
@@ -51,6 +88,14 @@
  "c" 'delete-window
  )
 
+;; Treemacs
+(general-evil-define-key 'normal 'global
+ :prefix "SPC t"
+ "t" 'treemacs-select-window
+ "p" 'treemacs-add-and-display-current-project
+ "q" 'treemacs
+ )
+
 ;; Buffer stuff
 (general-evil-define-key 'normal 'global
  :prefix "SPC b"
@@ -58,6 +103,18 @@
  "s" 'ido-switch-buffer
  "o" 'find-file
  )
+
+;; Visual mode binds
+(general-evil-define-key 'visual 'global
+  "TAB" 'indent-region
+  )
+
+;; Global binds
+(define-key global-map "\t" 'dabbrev-expand)
+
+;; Mode binds
+(general-create-definer my-local-leader-def
+  :prefix "SPC m")
 
 ;; Emacs stuff
 (defun reload-emacs () (interactive)
@@ -69,19 +126,6 @@
   "k" 'kill-emacs
   "r" 'reload-emacs
   "c" 'config-emacs)
-
-
-;; Visual mode binds
-(general-evil-define-key 'visual 'global
-  "i" 'indent-region
-  )
-
-;; Global binds
-(define-key global-map "\t" 'dabbrev-expand)
-
-;; Mode binds
-(general-create-definer my-local-leader-def
-  :prefix "SPC m")
 
 ;; Solarized Theme
 (unless (package-installed-p 'solarized-theme)
@@ -138,32 +182,11 @@
 		    mode-name))
 
 ;; Languages
-; Accepted file extensions and their appropriate modes
-(setq auto-mode-alist
-      (append
-       '(("\\.cpp$"   . c++-mode)
-         ("\\.h$"     . c++-mode)
-         ("\\.c$"     . c++-mode)
-         ("\\.cc$"    . c++-mode)
-         ("\\.txt$"   . indented-text-mode)
-         ("\\.emacs$" . emacs-lisp-mode)
-	 ("\\.html"   . mhtml-mode)
-	 ("\\.vert"   . glsl-mode)
-	 ("\\.frag"   . glsl-mode)
-	 ("\\.gl"   . glsl-mode)
-         ) auto-mode-alist))
 
-;; LSP
-(unless (package-installed-p 'eglot)
-  (package-install 'eglot))
-(require 'eglot)
-(require 'flymake)
-(add-to-list 'eglot-server-programs
-	     '(c-mode c++-mode . ("clangd")))
-(add-hook 'c-mode-hook #'eglot-ensure)
-(add-hook 'c++-mode-hook #'eglot-ensure)
-(setq eglot-send-changes-idle-time 1.0)
-(setq flymake-no-changes-timeout 1.0)
+(unless (package-installed-p 'tree-sitter)
+  (package-install 'tree-sitter))
+(unless (package-installed-p 'tree-sitter-langs)
+  (package-install 'tree-sitter-langs))
 
 ;; C++
 (require 'cc-mode)
@@ -312,6 +335,45 @@
  "D" 'xref-go-back
  )
 
+;; Typescript
+(unless (package-installed-p 'typescript-mode)
+  (package-install 'typescript-mode))
+(require 'glsl-mode)
+(require 'tree-sitter)
+(require 'tree-sitter-langs)
+(tree-sitter-require 'typescript)
+
+(defun my-js-hook ()
+  (setq tab-width 2
+	indent-tabs-mod nil)
+  (setq typescript-indent-level 2)
+  (setq js-indent-level 2)
+  (setq dabbrev-case-replace t)
+  (setq dabbrev-case-fold-search t)
+  (setq dabbrev-upcase-means-case-search t)
+  (define-key typescript-mode-map "\t" 'dabbrev-expand)
+  (electric-pair-mode t)
+  )
+(add-hook 'typescript-mode-hook 'my-js-hook)
+(add-hook 'js-mode-hook 'my-js-hook)
+(add-hook 'typescript-mode-hook #'tree-sitter-mode)
+
+; Accepted file extensions and their appropriate modes
+(setq auto-mode-alist
+      (append
+       '(("\\.cpp$"   . c++-mode)
+         ("\\.h$"     . c++-mode)
+         ("\\.c$"     . c++-mode)
+         ("\\.cc$"    . c++-mode)
+         ("\\.txt$"   . indented-text-mode)
+         ("\\.emacs$" . emacs-lisp-mode)
+	 ("\\.html"   . mhtml-mode)
+	 ("\\.vert"   . glsl-mode)
+	 ("\\.frag"   . glsl-mode)
+	 ("\\.gl"   . glsl-mode)
+	 ("\\.ts"   . typescript-mode)
+         ) auto-mode-alist))
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -319,7 +381,7 @@
  ;; If there is more than one, they won't work right.
  '(evil-undo-system 'undo-redo)
  '(package-selected-packages
-   '(eglot glsl-mode impatient-mode rust-mode general solarized-theme evil)))
+   '(evil-anzu evil-mc treemacs-all-the-icons treemacs-treemacs-all-the-icons all-the-icons treemacs-projectile projectile treemacs-evil treemacs tree-sitter-langs tree-sitter glsl-mode impatient-mode rust-mode general solarized-theme evil)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
