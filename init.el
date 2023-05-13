@@ -22,18 +22,10 @@
 ;; Evil mode
 (unless (package-installed-p 'evil)
   (package-install 'evil))
-(unless (package-installed-p 'evil-mc)
-  (package-install 'evil-mc))
 (require 'evil)
-(require 'evil-mc)
 (setq evil-undo-system 'undo-redo)
 (evil-mode 1)
 
-; Multicursor
-(global-evil-mc-mode 1)
-(evil-define-key 'visual evil-mc-key-map
-  "a" #'evil-mc-make-cursor-in-visual-selection-end
-  "i" #'evil-mc-make-cursor-in-visual-selection-beg)
 (setq evil-emacs-state-modes nil
       evil-insert-state-modes nil
       evil-motion-state-modes nil
@@ -68,6 +60,10 @@
 (treemacs-define-RET-action 'file-node-open   #'treemacs-visit-node-in-most-recently-used-window)
 (treemacs-define-RET-action 'file-node-closed #'treemacs-visit-node-in-most-recently-used-window)
 (setq treemacs-default-visit-action 'treemacs-visit-node-close-treemacs)
+(defun my-treemacs-hook ()
+  (text-scale-adjust -1)
+  )
+(add-hook 'treemacs-mode-hook 'my-treemacs-hook)
 
 ;; KEYBINDS
 
@@ -254,7 +250,6 @@
   (add-to-list 'compilation-error-regexp-alist-alist '(my-devenv
    "*\\([0-9]+>\\)?\\(\\(?:[a-zA-Z]:\\)?[^:(\t\n]+\\)(\\([0-9]+\\)) : \\(?:see declaration\\|\\(?:warnin\\(g\\)\\|[a-z ]+\\) C[0-9]+:\\)"
    2 3 nil (4)))
-  (eglot-inlay-hints-mode -1)
   )
 
 (add-hook 'c-mode-common-hook 'my-c-hook)
@@ -379,9 +374,8 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(evil-undo-system 'undo-redo)
  '(package-selected-packages
-   '(evil-anzu evil-mc treemacs-all-the-icons treemacs-treemacs-all-the-icons all-the-icons treemacs-projectile projectile treemacs-evil treemacs tree-sitter-langs tree-sitter glsl-mode impatient-mode rust-mode general solarized-theme evil)))
+   '(typescript-mode tree-sitter-langs tree-sitter treemacs-all-the-icons treemacs-projectile treemacs-evil treemacs projectile all-the-icons glsl-mode impatient-mode rust-mode general solarized-theme evil)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
