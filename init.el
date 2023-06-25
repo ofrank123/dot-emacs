@@ -157,6 +157,9 @@
 (scroll-bar-mode -1)
 (tool-bar-mode -1)
 
+;; Always refresh buffers
+(global-auto-revert-mode t)
+
 ;; Shell
 (add-hook 'eshell-mode-hook
           (defun my-eshell-mode-setup ()
@@ -321,6 +324,13 @@
 
 (my-local-leader-def
  :states 'normal
+ :keymaps 'glsl-mode-map
+ "m" 'make-without-asking
+ "h" 'ff-find-other-file
+ )
+
+(my-local-leader-def
+ :states 'normal
  :keymaps 'c++-mode-map
  "m" 'make-without-asking
  "h" 'ff-find-other-file
@@ -374,6 +384,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(evil-undo-system 'undo-redo)
  '(package-selected-packages
    '(typescript-mode tree-sitter-langs tree-sitter treemacs-all-the-icons treemacs-projectile treemacs-evil treemacs projectile all-the-icons glsl-mode impatient-mode rust-mode general solarized-theme evil)))
 (custom-set-faces
